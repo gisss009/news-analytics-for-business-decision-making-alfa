@@ -1,0 +1,53 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #9e1e2c;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.phrase {
+  margin: 0;
+  padding: 18vh 8vw 0;
+  color: #f3ebe3;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 1.15;
+}
+
+.phrase:empty {
+  display: none;
+}
+
+.secret {
+  position: fixed;
+  z-index: 2;
+  left: 0;
+  bottom: 0;
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  opacity: 0;
+  cursor: default;
+  appearance: none;
+  box-shadow: none;
+  outline: none;
+}
+
+.secret:hover,
+.secret:focus,
+.secret:focus-visible,
+.secret:active {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+  opacity: 0;
+  cursor: default;
+}
