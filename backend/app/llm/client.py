@@ -17,6 +17,8 @@ from pydantic import BaseModel, ValidationError
 
 from app.core.config import model_routing, settings
 from app.core.logging import get_logger, log_tool_call
+from app.llm import budget
+from app.llm.errors import BudgetExceeded, LLMError, ModelNotAllowed  # noqa: F401 (реэкспорт)
 
 ALLOWED_MODELS = frozenset({
     "gemma-4-26b-a4b",            # простые задачи: классификация, извлечение
@@ -36,14 +38,6 @@ log = get_logger("llm")
 # Подменяются в тестах
 _transport: httpx.BaseTransport | None = None
 _sleep: Callable[[float], None] = time.sleep
-
-
-class ModelNotAllowed(ValueError):
-    pass
-
-
-class LLMError(RuntimeError):
-    """Модель недоступна или ответ невалиден. Вызывающий шаг обязан иметь запасной вариант."""
 
 
 @dataclass
@@ -94,18 +88,33 @@ def estimate_tokens(text: str) -> int:
 
 def complete(step: str, messages: list[dict], schema: type[T] | None = None, temperature: float = 0.2,
              model: str | None = None) -> str | T:
-    """Вызов модели для шага step. С schema возвращает валидированный объект Pydantic."""
+    """Вызов модели для шага step. С schema возвращает валидированный объект Pydantic.
+
+    Режим real: сначала кэш (повтор не тратит токены), затем проверка дневного бюджета (BudgetExceeded).
+    """
     model = model or model_for(step)
     check_model(model)
     if settings.llm_mode == "stub":
         text, usage = _stub_call(step, messages)
         return _finish(step, model, messages, text, usage, schema, repair=None)
+    key = budget.cache_key(model, messages, temperature, schema.__name__ if schema else None)
+    cached = budget.cache_get(key)
+    if cached is not None:
+        log_tool_call(step, f"llm:{model}", {"mode": "real", "cached": True, "messages": len(messages)},
+                      result=cached, tokens=0)
+        return _parse(cached, schema) if schema else cached
+    prompt_est = sum(estimate_tokens(m.get("content", "")) for m in messages)
+    try:
+        budget.check_and_reserve(model, prompt_est * 2)  # грубая оценка: вход + ответ сопоставимой длины
+    except BudgetExceeded as e:
+        log_tool_call(step, f"llm:{model}", {"mode": "real", "budget_exceeded": True}, result=str(e), ok=False)
+        raise
     text, usage = _http_call(model, messages, temperature, json_mode=schema is not None)
     repair = (lambda msgs: _http_call(model, msgs, temperature, json_mode=True)) if schema else None
-    return _finish(step, model, messages, text, usage, schema, repair)
+    return _finish(step, model, messages, text, usage, schema, repair, cache_key=key)
 
 
-def _finish(step, model, messages, text, usage, schema, repair):
+def _finish(step, model, messages, text, usage, schema, repair, cache_key=None):
     ok = True
     try:
         if schema is None:
@@ -131,6 +140,9 @@ def _finish(step, model, messages, text, usage, schema, repair):
         ok = False
         raise
     finally:
+        budget.record(model, usage.total, settings.llm_mode)
+        if ok and cache_key:
+            budget.cache_put(cache_key, model, text)
         log_tool_call(step, f"llm:{model}", {"mode": settings.llm_mode, "messages": len(messages),
                                              "chars": sum(len(m.get("content", "")) for m in messages)},
                       result=text, tokens=usage.total, ok=ok)

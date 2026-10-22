@@ -1,5 +1,7 @@
 """Одна SQLite-БД на приложение. Модули регистрируют свои таблицы через register_schema()."""
 import sqlite3
+from collections.abc import Iterator
+from contextlib import contextmanager
 import threading
 from pathlib import Path
 
@@ -32,3 +34,17 @@ def connect(db_path: Path | str | None = None) -> sqlite3.Connection:
                 conn.executescript(ddl)
                 done.add(name)
     return conn
+
+
+@contextmanager
+def session(db_path: Path | str | None = None) -> Iterator[sqlite3.Connection]:
+    """Соединение на один блок работы: commit при успехе, rollback при ошибке, всегда close."""
+    conn = connect(db_path)
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
