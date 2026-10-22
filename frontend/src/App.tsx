@@ -3,6 +3,7 @@ import { NavLink, Outlet, Route, Routes } from "react-router-dom";
 import { Clients } from "./pages/Clients";
 import { Feed } from "./pages/Feed";
 import { Home } from "./pages/Home";
+import { InsightPage } from "./pages/InsightPage";
 import { NotFound } from "./pages/NotFound";
 
 function Layout() {
@@ -31,6 +32,7 @@ export function App() {
         <Route index element={<Home />} />
         <Route path="clients" element={<Clients />} />
         <Route path="clients/:clientId" element={<Feed />} />
+        <Route path="clients/:clientId/events/:eventId" element={<InsightPage />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
