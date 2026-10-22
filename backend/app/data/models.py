@@ -8,6 +8,7 @@ from app.core.db import register_schema
 COMPANIES_FILE = "df_Uid_data_hack.csv"
 PERSONS_FILE = "df_Fid_Uid_link_hack.csv"
 PAYMENTS_FILE = "df_Uid_payment_hack.csv"
+NAMES_FILE = "synthetic_company_names.csv"  # только у синтетики: отображаемые названия
 CSV_DELIMITER = ";"
 
 # столбец CSV → (поле таблицы, тип: str | flag | float)
@@ -91,6 +92,11 @@ CREATE TABLE IF NOT EXISTS payments (
     PRIMARY KEY (beneficiary, payer)
 );
 CREATE INDEX IF NOT EXISTS ix_payments_payer ON payments(payer);
+
+CREATE TABLE IF NOT EXISTS company_names (
+    company_id TEXT PRIMARY KEY,
+    display_name TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS data_meta (
     key TEXT PRIMARY KEY,

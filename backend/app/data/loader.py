@@ -11,8 +11,8 @@ from pathlib import Path
 from app.core.config import settings
 from app.core.db import session
 from app.core.logging import get_logger
-from app.data.models import (COMPANIES_FILE, COMPANY_COLUMNS, CSV_DELIMITER, PAYMENT_COLUMNS, PAYMENTS_FILE,
-                             PERSON_COLUMNS, PERSONS_FILE)
+from app.data.models import (COMPANIES_FILE, COMPANY_COLUMNS, CSV_DELIMITER, NAMES_FILE, PAYMENT_COLUMNS,
+                             PAYMENTS_FILE, PERSON_COLUMNS, PERSONS_FILE)
 
 log = get_logger("data.loader")
 
@@ -64,11 +64,17 @@ def load_all(source_dir: Path | str, dataset: str | None = None) -> dict:
 
     persons = {(r["person_id"], r["company_id"]): r for r in read_rows(source_dir / PERSONS_FILE, PERSON_COLUMNS)}
 
+    names_path = source_dir / NAMES_FILE
+    names = list(read_rows(names_path, {"SYNTHETIC_U": ("company_id", "str"), "DISPLAY_NAME": ("display_name", "str")}))         if names_path.exists() else []
+
     company_fields = [name for name, _ in COMPANY_COLUMNS.values()] + ["dataset"]
     with session() as conn:
         conn.execute("DELETE FROM companies")
         conn.execute("DELETE FROM persons")
         conn.execute("DELETE FROM payments")
+        conn.execute("DELETE FROM company_names")
+        conn.executemany("INSERT INTO company_names (company_id, display_name) VALUES (?, ?)",
+                         ((n["company_id"], n["display_name"]) for n in names))
         conn.executemany(
             f"INSERT INTO companies ({', '.join(company_fields)}) VALUES ({', '.join('?' * len(company_fields))})",
             ([*c.values(), dataset] for c in companies.values()))
