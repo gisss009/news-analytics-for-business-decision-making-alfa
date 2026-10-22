@@ -1,0 +1,1434 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Новостная аналитика для бизнеса",
+    "description": "Прототип: персонализированная лента событий и интерпретация с источниками.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "service"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/roles": {
+      "get": {
+        "tags": [
+          "clients"
+        ],
+        "summary": "Roles",
+        "operationId": "roles_roles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Role"
+                  },
+                  "type": "array",
+                  "title": "Response Roles Roles Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients": {
+      "get": {
+        "tags": [
+          "clients"
+        ],
+        "summary": "Clients",
+        "description": "Крупные компании (выручка от 15 млрд руб.) — целевой сегмент кейса.",
+        "operationId": "clients_clients_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ClientSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Clients Clients Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{client_id}/profile": {
+      "get": {
+        "tags": [
+          "clients"
+        ],
+        "summary": "Profile",
+        "operationId": "profile_clients__client_id__profile_get",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{client_id}/feed": {
+      "get": {
+        "tags": [
+          "feed"
+        ],
+        "summary": "Feed",
+        "description": "События, отсортированные по значимости для компании; у каждого — причины «почему в вашей ленте».",
+        "operationId": "feed_clients__client_id__feed_get",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client Id"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "cfo",
+              "title": "Role"
+            }
+          },
+          {
+            "name": "topic",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Topic"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 1,
+              "default": 12,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{client_id}/feed/refresh": {
+      "post": {
+        "tags": [
+          "feed"
+        ],
+        "summary": "Refresh",
+        "description": "Пересчёт ленты (в прототипе лента считается на лету, кэша ленты нет).",
+        "operationId": "refresh_clients__client_id__feed_refresh_post",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client Id"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "cfo",
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{event_id}/insight": {
+      "get": {
+        "tags": [
+          "insight"
+        ],
+        "summary": "Insight",
+        "description": "Шесть блоков интерпретации события для компании; повторный запрос берётся из кэша.",
+        "operationId": "insight_events__event_id__insight_get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "client",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "cfo",
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{event_id}/insight/stream": {
+      "get": {
+        "tags": [
+          "insight"
+        ],
+        "summary": "Insight Stream",
+        "description": "Прогресс шагов агента для индикатора в интерфейсе (Server-Sent Events).",
+        "operationId": "insight_stream_events__event_id__insight_stream_get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "client",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "cfo",
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "События step (StepEvent), затем done (InsightResponse) или error",
+            "content": {
+              "text/event-stream": {},
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StepEvent"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/refs": {
+      "get": {
+        "tags": [
+          "insight"
+        ],
+        "summary": "Open Ref",
+        "description": "Первоисточник по ссылке из вывода: факт новости, страница аналитики, тезис, признак компании.",
+        "operationId": "open_ref_refs_get",
+        "parameters": [
+          {
+            "name": "ref",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "examples": [
+                "news:n001#f1"
+              ],
+              "title": "Ref"
+            }
+          },
+          {
+            "name": "client",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Client"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BankViewBlock": {
+        "properties": {
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Claims",
+            "default": []
+          },
+          "absent": {
+            "type": "boolean",
+            "title": "Absent",
+            "default": false
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "BankViewBlock"
+      },
+      "BasisBlock": {
+        "properties": {
+          "refs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Refs",
+            "default": []
+          }
+        },
+        "type": "object",
+        "title": "BasisBlock"
+      },
+      "Blocks": {
+        "properties": {
+          "what_happened": {
+            "$ref": "#/components/schemas/ClaimsBlock",
+            "default": {
+              "claims": []
+            }
+          },
+          "why_it_matters": {
+            "$ref": "#/components/schemas/ClaimsBlock",
+            "default": {
+              "claims": []
+            }
+          },
+          "consequences": {
+            "$ref": "#/components/schemas/ConsequencesBlock",
+            "default": {
+              "risks": [],
+              "opportunities": []
+            }
+          },
+          "actions": {
+            "$ref": "#/components/schemas/ClaimsBlock",
+            "default": {
+              "claims": []
+            }
+          },
+          "bank_view": {
+            "$ref": "#/components/schemas/BankViewBlock",
+            "default": {
+              "claims": [],
+              "absent": false
+            }
+          },
+          "basis": {
+            "$ref": "#/components/schemas/BasisBlock",
+            "default": {
+              "refs": []
+            }
+          }
+        },
+        "type": "object",
+        "title": "Blocks"
+      },
+      "Claim": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 3,
+            "title": "Text"
+          },
+          "label": {
+            "type": "string",
+            "enum": [
+              "fact",
+              "bank_analytics",
+              "model_inference"
+            ],
+            "title": "Label"
+          },
+          "refs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Refs"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "default": 0.7
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "label",
+          "refs"
+        ],
+        "title": "Claim"
+      },
+      "ClaimsBlock": {
+        "properties": {
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Claims",
+            "default": []
+          }
+        },
+        "type": "object",
+        "title": "ClaimsBlock"
+      },
+      "ClientFeature": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "source"
+        ],
+        "title": "ClientFeature"
+      },
+      "ClientSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "sector": {
+            "type": "string",
+            "title": "Sector"
+          },
+          "sector_title": {
+            "type": "string",
+            "title": "Sector Title"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "revenue_rub": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Rub"
+          },
+          "products": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Products"
+          },
+          "fts_countries": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fts Countries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "sector",
+          "sector_title",
+          "region",
+          "revenue_rub",
+          "products",
+          "fts_countries"
+        ],
+        "title": "ClientSummary"
+      },
+      "ConsequencesBlock": {
+        "properties": {
+          "risks": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Risks",
+            "default": []
+          },
+          "opportunities": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Opportunities",
+            "default": []
+          }
+        },
+        "type": "object",
+        "title": "ConsequencesBlock"
+      },
+      "EventRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Published At"
+          },
+          "topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceLink"
+            },
+            "type": "array",
+            "title": "Sources",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "published_at"
+        ],
+        "title": "EventRef"
+      },
+      "Exposure": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "based_on": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Based On"
+          },
+          "refs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Refs"
+          },
+          "details": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Details",
+            "default": {}
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "score",
+          "explanation",
+          "based_on",
+          "refs"
+        ],
+        "title": "Exposure"
+      },
+      "Feature": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "value": {
+            "title": "Value"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence",
+            "default": 1.0
+          },
+          "missing": {
+            "type": "boolean",
+            "title": "Missing",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "value",
+          "title",
+          "source"
+        ],
+        "title": "Feature"
+      },
+      "Feed": {
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "title": "Client Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "topics": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Topics"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/FeedEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client_id",
+          "role",
+          "generated_at",
+          "topics",
+          "events"
+        ],
+        "title": "Feed"
+      },
+      "FeedEvent": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "topic": {
+            "type": "string",
+            "title": "Topic"
+          },
+          "topic_title": {
+            "type": "string",
+            "title": "Topic Title"
+          },
+          "first_seen": {
+            "type": "string",
+            "format": "date-time",
+            "title": "First Seen"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "matched_features": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched Features"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "annotation": {
+            "type": "string",
+            "title": "Annotation"
+          },
+          "sectors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sectors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "title",
+          "topic",
+          "topic_title",
+          "first_seen",
+          "score",
+          "reasons",
+          "matched_features",
+          "sources",
+          "annotation",
+          "sectors"
+        ],
+        "title": "FeedEvent"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "llm_mode": {
+            "type": "string",
+            "title": "Llm Mode"
+          },
+          "companies": {
+            "type": "integer",
+            "title": "Companies"
+          },
+          "events": {
+            "type": "integer",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok",
+          "llm_mode",
+          "companies",
+          "events"
+        ],
+        "title": "Health"
+      },
+      "Insight": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "event": {
+            "$ref": "#/components/schemas/EventRef"
+          },
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "client_features": {
+            "items": {
+              "$ref": "#/components/schemas/ClientFeature"
+            },
+            "type": "array",
+            "title": "Client Features",
+            "default": []
+          },
+          "relevance": {
+            "$ref": "#/components/schemas/Relevance"
+          },
+          "blocks": {
+            "$ref": "#/components/schemas/Blocks"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/Verification"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings",
+            "default": []
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DONE",
+              "DONE_WITH_WARNINGS",
+              "FALLBACK"
+            ],
+            "title": "Status",
+            "default": "DONE"
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "event",
+          "company_id",
+          "role",
+          "relevance",
+          "blocks",
+          "verification",
+          "prompt_version"
+        ],
+        "title": "Insight"
+      },
+      "InsightResponse": {
+        "properties": {
+          "insight": {
+            "$ref": "#/components/schemas/Insight"
+          },
+          "cached": {
+            "type": "boolean",
+            "title": "Cached"
+          },
+          "label_titles": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Label Titles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "insight",
+          "cached",
+          "label_titles"
+        ],
+        "title": "InsightResponse"
+      },
+      "Issue": {
+        "properties": {
+          "claim_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Claim Id"
+          },
+          "block": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "missing_ref",
+              "bad_ref",
+              "number_mismatch",
+              "contradiction",
+              "empty_block",
+              "unsupported"
+            ],
+            "title": "Type"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type",
+          "detail"
+        ],
+        "title": "Issue"
+      },
+      "Profile": {
+        "properties": {
+          "client": {
+            "$ref": "#/components/schemas/ClientSummary"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/Feature"
+            },
+            "type": "array",
+            "title": "Features"
+          },
+          "exposures": {
+            "items": {
+              "$ref": "#/components/schemas/Exposure"
+            },
+            "type": "array",
+            "title": "Exposures"
+          }
+        },
+        "type": "object",
+        "required": [
+          "client",
+          "features",
+          "exposures"
+        ],
+        "title": "Profile"
+      },
+      "RefView": {
+        "properties": {
+          "ref": {
+            "type": "string",
+            "title": "Ref"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "excerpt_only": {
+            "type": "boolean",
+            "title": "Excerpt Only",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "ref",
+          "kind",
+          "title",
+          "text"
+        ],
+        "title": "RefView"
+      },
+      "RefreshResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "events": {
+            "type": "integer",
+            "title": "Events"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "events"
+        ],
+        "title": "RefreshResult"
+      },
+      "Relevance": {
+        "properties": {
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons",
+            "default": []
+          },
+          "matched_features": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched Features",
+            "default": []
+          },
+          "components": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Components",
+            "default": {}
+          }
+        },
+        "type": "object",
+        "required": [
+          "score"
+        ],
+        "title": "Relevance"
+      },
+      "Role": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "Role"
+      },
+      "SourceLink": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "ref": {
+            "type": "string",
+            "title": "Ref"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "ref"
+        ],
+        "title": "SourceLink"
+      },
+      "StepEvent": {
+        "properties": {
+          "step": {
+            "type": "string",
+            "title": "Step"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "title": "Duration Ms"
+          }
+        },
+        "type": "object",
+        "required": [
+          "step",
+          "title",
+          "status",
+          "duration_ms"
+        ],
+        "title": "StepEvent"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "Verification": {
+        "properties": {
+          "passed": {
+            "type": "boolean",
+            "title": "Passed"
+          },
+          "iterations": {
+            "type": "integer",
+            "title": "Iterations",
+            "default": 1
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/Issue"
+            },
+            "type": "array",
+            "title": "Issues",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "passed"
+        ],
+        "title": "Verification"
+      }
+    }
+  }
+}

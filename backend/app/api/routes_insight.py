@@ -70,7 +70,7 @@ def _sse(event: str, data: str) -> str:
 
 
 @router.get("/events/{event_id}/insight/stream", response_class=StreamingResponse,
-            responses={200: {"content": {"text/event-stream": {}},
+            responses={200: {"model": StepEvent, "content": {"text/event-stream": {}},
                              "description": "События step (StepEvent), затем done (InsightResponse) или error"}})
 def insight_stream(event_id: str, client: str = Query(...), role: str = "cfo"):
     """Прогресс шагов агента для индикатора в интерфейсе (Server-Sent Events)."""
