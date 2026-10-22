@@ -1,0 +1,33 @@
+# Секреты: только .env.example в репозитории
+.env
+.env.*
+!.env.example
+
+# Сырой датасет банка не коммитим
+data/raw/
+
+# Локальная БД и рабочие файлы
+*.sqlite
+*.sqlite3
+*.db
+data/runtime/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node
+node_modules/
+frontend/dist/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
