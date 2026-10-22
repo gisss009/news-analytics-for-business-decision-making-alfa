@@ -1,0 +1,159 @@
+# ОКВЭД → отрасль → чувствительность к макрофакторам (0..1).
+# Поиск по самому длинному совпавшему префиксу кода (например "46.71" раньше "46").
+# Новая отрасль = новая запись здесь, без правки Python.
+# Факторы: rate (ключевая ставка), fx (курс), oil, metals, gold, grain (цены сырья),
+#          inflation (инфляция издержек), demand (потребительский спрос), regulation, sanctions (санкции и ВЭД).
+# keywords: слова для сопоставления новостей с отраслью (ing.classify).
+
+defaults:
+  unknown_sector: other
+  unknown_confidence: 0.3
+  group_confidence: 0.7      # совпадение только по 2 цифрам
+  exact_confidence: 0.95     # совпадение по уточнённому префиксу
+
+sectors:
+  wholesale_trade:
+    title: Оптовая торговля
+    prefixes: ["46"]
+    factors: {rate: 0.7, fx: 0.7, inflation: 0.6, demand: 0.6, sanctions: 0.5, regulation: 0.3}
+    keywords: [оптов, дистрибуц, импорт, поставк]
+  fuel_trade:
+    title: Оптовая торговля топливом
+    prefixes: ["46.71", "46.12"]
+    factors: {oil: 0.9, rate: 0.6, fx: 0.6, regulation: 0.6, sanctions: 0.6}
+    keywords: [топлив, бензин, дизел, нефтепродукт]
+  metals_trade:
+    title: Оптовая торговля металлами и рудами
+    prefixes: ["46.72"]
+    factors: {metals: 0.9, rate: 0.6, fx: 0.6, sanctions: 0.5}
+    keywords: [металл, стал, прокат, руд]
+  food_trade:
+    title: Оптовая торговля продовольствием
+    prefixes: ["46.2", "46.3"]
+    factors: {grain: 0.6, inflation: 0.8, demand: 0.7, fx: 0.6, rate: 0.6, regulation: 0.4}
+    keywords: [продовольств, продукт питания, зерн, напит, мясо, молок]
+  pharma_trade:
+    title: Оптовая торговля лекарствами
+    prefixes: ["46.46"]
+    factors: {fx: 0.8, regulation: 0.7, sanctions: 0.5, rate: 0.5, demand: 0.4}
+    keywords: [фарма, лекарств, медицинск]
+  retail:
+    title: Розничная торговля
+    prefixes: ["47"]
+    factors: {demand: 0.9, inflation: 0.8, rate: 0.6, fx: 0.5, regulation: 0.4}
+    keywords: [розниц, ритейл, потребител, магазин, маркетплейс]
+  auto:
+    title: Автомобили (производство, продажа, сервис)
+    prefixes: ["45", "29"]
+    factors: {rate: 0.8, fx: 0.8, demand: 0.7, sanctions: 0.6, regulation: 0.5}
+    keywords: [автомоб, автопро, утильсбор, автокредит]
+  construction:
+    title: Строительство
+    prefixes: ["41", "42", "43"]
+    factors: {rate: 0.9, metals: 0.5, inflation: 0.6, regulation: 0.6, demand: 0.5}
+    keywords: [строител, девелоп, ипотек, жиль, инфраструктур]
+  real_estate:
+    title: Недвижимость
+    prefixes: ["68"]
+    factors: {rate: 0.9, demand: 0.6, inflation: 0.4, regulation: 0.4}
+    keywords: [недвижим, аренд, ипотек, жиль]
+  horeca:
+    title: Гостиницы и общепит
+    prefixes: ["55", "56", "79"]
+    factors: {demand: 0.9, inflation: 0.7, rate: 0.4, regulation: 0.3}
+    keywords: [ресторан, общепит, гостиниц, туризм, туропер]
+  it:
+    title: IT и программное обеспечение
+    prefixes: ["62", "63", "58.2"]
+    factors: {rate: 0.5, fx: 0.4, regulation: 0.6, sanctions: 0.5, demand: 0.3}
+    keywords: [программн, софт, цифров, IT, ИТ-, искусственн]
+  professional_services:
+    title: Профессиональные услуги
+    prefixes: ["69", "70", "71", "72", "73", "74", "78", "82"]
+    factors: {rate: 0.4, demand: 0.4, inflation: 0.4, regulation: 0.3}
+    keywords: [консалтинг, инжиниринг, аудит]
+  finance_leasing:
+    title: Финансы и лизинг
+    prefixes: ["64", "65", "66"]
+    factors: {rate: 1.0, regulation: 0.7, fx: 0.4, demand: 0.4}
+    keywords: [лизинг, банк, кредит, страхов, облигац]
+  transport_logistics:
+    title: Транспорт и логистика
+    prefixes: ["49", "50", "51", "52", "53"]
+    factors: {oil: 0.7, rate: 0.6, fx: 0.5, sanctions: 0.6, demand: 0.5, inflation: 0.5}
+    keywords: [перевоз, логистик, грузо, транспорт, порт, железнодорож]
+  oil_gas:
+    title: Нефть и газ
+    prefixes: ["06", "09.10", "19"]
+    factors: {oil: 1.0, fx: 0.8, sanctions: 0.8, regulation: 0.7, rate: 0.5}
+    keywords: [нефт, газ, Urals, Brent, ОПЕК, НДПИ, демпфер]
+  mining_metals:
+    title: Добыча и металлургия
+    prefixes: ["05", "07", "08", "09", "24", "25"]
+    factors: {metals: 0.9, fx: 0.8, sanctions: 0.7, rate: 0.6, regulation: 0.5}
+    keywords: [металлург, стал, металл, руд, уголь, никел, алюмин, медь]
+  gold_mining:
+    title: Добыча драгоценных металлов
+    prefixes: ["07.29"]
+    factors: {gold: 1.0, fx: 0.8, sanctions: 0.6, regulation: 0.5, rate: 0.5}
+    keywords: [золот, драгоценн, серебр, платин]
+  agriculture:
+    title: Сельское хозяйство
+    prefixes: ["01", "02", "03"]
+    factors: {grain: 0.9, fx: 0.6, rate: 0.7, regulation: 0.6, inflation: 0.5}
+    keywords: [урожа, зерн, пшениц, агро, сельхоз, удобрен]
+  food_production:
+    title: Пищевое производство
+    prefixes: ["10", "11", "12"]
+    factors: {grain: 0.7, inflation: 0.7, demand: 0.7, rate: 0.6, fx: 0.5}
+    keywords: [пищев, продовольств, молочн, мясн, напит]
+  light_industry:
+    title: Лёгкая промышленность
+    prefixes: ["13", "14", "15"]
+    factors: {fx: 0.6, demand: 0.7, rate: 0.6, inflation: 0.5}
+    keywords: [текстил, одежд, обув]
+  wood_paper:
+    title: Лес, бумага, полиграфия
+    prefixes: ["16", "17", "18"]
+    factors: {fx: 0.6, sanctions: 0.6, rate: 0.6, demand: 0.4}
+    keywords: [лес, древесин, бумаг, картон]
+  chemicals_pharma:
+    title: Химия и фармацевтика
+    prefixes: ["20", "21", "22"]
+    factors: {oil: 0.5, fx: 0.7, sanctions: 0.6, rate: 0.6, regulation: 0.5}
+    keywords: [хими, удобрен, пластик, фармацевт, лекарств]
+  building_materials:
+    title: Строительные материалы
+    prefixes: ["23"]
+    factors: {rate: 0.7, demand: 0.5, inflation: 0.5, metals: 0.3}
+    keywords: [цемент, стройматериал, стекл, кирпич]
+  machinery:
+    title: Машиностроение и электроника
+    prefixes: ["26", "27", "28", "30", "31", "32", "33"]
+    factors: {metals: 0.6, fx: 0.7, rate: 0.7, sanctions: 0.6, demand: 0.4}
+    keywords: [машиностро, оборудован, станк, электроник, судостро]
+  energy_utilities:
+    title: Энергетика и ЖКХ
+    prefixes: ["35", "36", "37", "38", "39"]
+    factors: {regulation: 0.9, rate: 0.6, inflation: 0.6, oil: 0.3}
+    keywords: [электроэнерг, энергетик, тариф, ЖКХ, теплоснабжен]
+  telecom_media:
+    title: Связь и медиа
+    prefixes: ["58", "59", "60", "61"]
+    factors: {regulation: 0.6, fx: 0.5, rate: 0.5, demand: 0.5, sanctions: 0.4}
+    keywords: [связ, телеком, оператор, медиа, реклам]
+  healthcare:
+    title: Здравоохранение и соцуслуги
+    prefixes: ["75", "86", "87", "88"]
+    factors: {regulation: 0.6, demand: 0.5, inflation: 0.5, fx: 0.4}
+    keywords: [медицин, клиник, здравоохран]
+  consumer_services:
+    title: Потребительские и прочие услуги
+    prefixes: ["77", "80", "81", "85", "90", "91", "92", "93", "94", "95", "96"]
+    factors: {demand: 0.7, inflation: 0.5, rate: 0.4}
+    keywords: [услуг, образован, спорт, аренд]
+  other:
+    title: Прочее
+    prefixes: []
+    factors: {rate: 0.5, inflation: 0.4, demand: 0.4}
+    keywords: []
