@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 
 from app.agents.schemas import Insight, Plan, Relevance, TraceStep, Verification
 from app.core.db import register_schema, session
@@ -61,6 +61,10 @@ class RunState(BaseModel):
     tokens_used: int = 0
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)
+    _on_step: object = PrivateAttr(default=None)  # необязательный слушатель шагов (прогресс для UI)
+
+    def on_step(self, callback) -> None:
+        self._on_step = callback
 
     @contextmanager
     def step(self, name: str, **detail):
@@ -76,8 +80,11 @@ class RunState(BaseModel):
             info["error"] = str(e)[:300]
             raise
         finally:
-            self.trace.append(TraceStep(step=name, status=status, started_at=started,
-                                        duration_ms=int((time.perf_counter() - t0) * 1000), detail=info))
+            ts = TraceStep(step=name, status=status, started_at=started,
+                           duration_ms=int((time.perf_counter() - t0) * 1000), detail=info)
+            self.trace.append(ts)
+            if callable(self._on_step):
+                self._on_step(ts)
 
 
 def save(state: RunState) -> None:

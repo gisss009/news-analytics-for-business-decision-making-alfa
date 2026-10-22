@@ -59,8 +59,9 @@ def _tokens(run_id: str) -> int:
         return conn.execute("SELECT COALESCE(SUM(tokens), 0) FROM tool_calls WHERE run_id = ?", (run_id,)).fetchone()[0]
 
 
-def run_insight(company_id: str, event_id: str, role: str = "cfo") -> RunState:
+def run_insight(company_id: str, event_id: str, role: str = "cfo", on_step=None) -> RunState:
     state = RunState(company_id=company_id, event_id=event_id, role=role)
+    state.on_step(on_step)
     token = run_id_var.set(state.run_id)
     try:
         state_store.save(state)

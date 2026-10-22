@@ -110,3 +110,6 @@ app.include_router(routes_clients.router)
 from app.api import routes_feed  # noqa: E402
 
 app.include_router(routes_feed.router)
+from app.api import routes_insight  # noqa: E402
+
+app.include_router(routes_insight.router)

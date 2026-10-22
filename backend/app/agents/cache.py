@@ -53,14 +53,14 @@ def cache_key(company_id: str, event_id: str, role: str) -> str:
               profile_version(company_id), content_version())
 
 
-def get_or_run(company_id: str, event_id: str, role: str = "cfo") -> tuple[Insight, bool]:
+def get_or_run(company_id: str, event_id: str, role: str = "cfo", on_step=None) -> tuple[Insight, bool]:
     """Инсайт из кэша (cached=True) или новый запуск оркестратора."""
     key = cache_key(company_id, event_id, role)
     with session() as conn:
         row = conn.execute("SELECT json FROM insights_cache WHERE key = ?", (key,)).fetchone()
     if row:
         return Insight.model_validate_json(row["json"]), True
-    state = run_insight(company_id, event_id, role)
+    state = run_insight(company_id, event_id, role, on_step=on_step)
     with session() as conn:
         conn.execute("INSERT OR REPLACE INTO insights_cache (key, company_id, event_id, role, run_id, json, created_at) "
                      "VALUES (?, ?, ?, ?, ?, ?, ?)",
