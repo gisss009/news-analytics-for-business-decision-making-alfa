@@ -1,0 +1,44 @@
+{
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "text": {
+      "minLength": 3,
+      "title": "Text",
+      "type": "string"
+    },
+    "label": {
+      "enum": [
+        "fact",
+        "bank_analytics",
+        "model_inference"
+      ],
+      "title": "Label",
+      "type": "string"
+    },
+    "refs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Refs",
+      "type": "array"
+    },
+    "confidence": {
+      "default": 0.7,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    }
+  },
+  "required": [
+    "id",
+    "text",
+    "label",
+    "refs"
+  ],
+  "title": "Claim",
+  "type": "object"
+}

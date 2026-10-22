@@ -1,0 +1,446 @@
+{
+  "$defs": {
+    "BankViewBlock": {
+      "properties": {
+        "claims": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Claim"
+          },
+          "title": "Claims",
+          "type": "array"
+        },
+        "absent": {
+          "default": false,
+          "title": "Absent",
+          "type": "boolean"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        }
+      },
+      "title": "BankViewBlock",
+      "type": "object"
+    },
+    "BasisBlock": {
+      "properties": {
+        "refs": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Refs",
+          "type": "array"
+        }
+      },
+      "title": "BasisBlock",
+      "type": "object"
+    },
+    "Blocks": {
+      "properties": {
+        "what_happened": {
+          "$ref": "#/$defs/ClaimsBlock",
+          "default": {
+            "claims": []
+          }
+        },
+        "why_it_matters": {
+          "$ref": "#/$defs/ClaimsBlock",
+          "default": {
+            "claims": []
+          }
+        },
+        "consequences": {
+          "$ref": "#/$defs/ConsequencesBlock",
+          "default": {
+            "risks": [],
+            "opportunities": []
+          }
+        },
+        "actions": {
+          "$ref": "#/$defs/ClaimsBlock",
+          "default": {
+            "claims": []
+          }
+        },
+        "bank_view": {
+          "$ref": "#/$defs/BankViewBlock",
+          "default": {
+            "claims": [],
+            "absent": false,
+            "note": null
+          }
+        },
+        "basis": {
+          "$ref": "#/$defs/BasisBlock",
+          "default": {
+            "refs": []
+          }
+        }
+      },
+      "title": "Blocks",
+      "type": "object"
+    },
+    "Claim": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "text": {
+          "minLength": 3,
+          "title": "Text",
+          "type": "string"
+        },
+        "label": {
+          "enum": [
+            "fact",
+            "bank_analytics",
+            "model_inference"
+          ],
+          "title": "Label",
+          "type": "string"
+        },
+        "refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Refs",
+          "type": "array"
+        },
+        "confidence": {
+          "default": 0.7,
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "label",
+        "refs"
+      ],
+      "title": "Claim",
+      "type": "object"
+    },
+    "ClaimsBlock": {
+      "properties": {
+        "claims": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Claim"
+          },
+          "title": "Claims",
+          "type": "array"
+        }
+      },
+      "title": "ClaimsBlock",
+      "type": "object"
+    },
+    "ClientFeature": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "default": null,
+          "title": "Value"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "source"
+      ],
+      "title": "ClientFeature",
+      "type": "object"
+    },
+    "ConsequencesBlock": {
+      "properties": {
+        "risks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Claim"
+          },
+          "title": "Risks",
+          "type": "array"
+        },
+        "opportunities": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Claim"
+          },
+          "title": "Opportunities",
+          "type": "array"
+        }
+      },
+      "title": "ConsequencesBlock",
+      "type": "object"
+    },
+    "EventRef": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "published_at": {
+          "format": "date-time",
+          "title": "Published At",
+          "type": "string"
+        },
+        "topic": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Topic"
+        },
+        "sources": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SourceLink"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "published_at"
+      ],
+      "title": "EventRef",
+      "type": "object"
+    },
+    "Issue": {
+      "properties": {
+        "claim_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Claim Id"
+        },
+        "block": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block"
+        },
+        "type": {
+          "enum": [
+            "missing_ref",
+            "bad_ref",
+            "number_mismatch",
+            "contradiction",
+            "empty_block",
+            "unsupported"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "detail"
+      ],
+      "title": "Issue",
+      "type": "object"
+    },
+    "Relevance": {
+      "properties": {
+        "score": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        },
+        "reasons": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "matched_features": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Matched Features",
+          "type": "array"
+        },
+        "components": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "default": {},
+          "title": "Components",
+          "type": "object"
+        }
+      },
+      "required": [
+        "score"
+      ],
+      "title": "Relevance",
+      "type": "object"
+    },
+    "SourceLink": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "url",
+        "ref"
+      ],
+      "title": "SourceLink",
+      "type": "object"
+    },
+    "Verification": {
+      "properties": {
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "iterations": {
+          "default": 1,
+          "title": "Iterations",
+          "type": "integer"
+        },
+        "issues": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Issue"
+          },
+          "title": "Issues",
+          "type": "array"
+        }
+      },
+      "required": [
+        "passed"
+      ],
+      "title": "Verification",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "event": {
+      "$ref": "#/$defs/EventRef"
+    },
+    "company_id": {
+      "title": "Company Id",
+      "type": "string"
+    },
+    "role": {
+      "title": "Role",
+      "type": "string"
+    },
+    "client_features": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ClientFeature"
+      },
+      "title": "Client Features",
+      "type": "array"
+    },
+    "relevance": {
+      "$ref": "#/$defs/Relevance"
+    },
+    "blocks": {
+      "$ref": "#/$defs/Blocks"
+    },
+    "verification": {
+      "$ref": "#/$defs/Verification"
+    },
+    "warnings": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    },
+    "status": {
+      "default": "DONE",
+      "enum": [
+        "DONE",
+        "DONE_WITH_WARNINGS",
+        "FALLBACK"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "prompt_version": {
+      "title": "Prompt Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "event",
+    "company_id",
+    "role",
+    "relevance",
+    "blocks",
+    "verification",
+    "prompt_version"
+  ],
+  "title": "Insight",
+  "type": "object"
+}

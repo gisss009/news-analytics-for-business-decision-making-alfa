@@ -1,0 +1,41 @@
+{
+  "properties": {
+    "step": {
+      "title": "Step",
+      "type": "string"
+    },
+    "status": {
+      "default": "ok",
+      "enum": [
+        "ok",
+        "fallback",
+        "error",
+        "skipped"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "duration_ms": {
+      "default": 0,
+      "title": "Duration Ms",
+      "type": "integer"
+    },
+    "detail": {
+      "additionalProperties": true,
+      "default": {},
+      "title": "Detail",
+      "type": "object"
+    }
+  },
+  "required": [
+    "step",
+    "started_at"
+  ],
+  "title": "TraceStep",
+  "type": "object"
+}

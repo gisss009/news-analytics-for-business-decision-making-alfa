@@ -1,0 +1,60 @@
+{
+  "$defs": {
+    "PlanStep": {
+      "properties": {
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        },
+        "args": {
+          "additionalProperties": true,
+          "default": {},
+          "title": "Args",
+          "type": "object"
+        },
+        "purpose": {
+          "default": "",
+          "title": "Purpose",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool"
+      ],
+      "title": "PlanStep",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/PlanStep"
+      },
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "questions": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Questions",
+      "type": "array"
+    },
+    "source": {
+      "default": "default",
+      "enum": [
+        "llm",
+        "default"
+      ],
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "steps"
+  ],
+  "title": "Plan",
+  "type": "object"
+}

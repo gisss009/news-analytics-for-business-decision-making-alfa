@@ -1,0 +1,78 @@
+{
+  "$defs": {
+    "Issue": {
+      "properties": {
+        "claim_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Claim Id"
+        },
+        "block": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Block"
+        },
+        "type": {
+          "enum": [
+            "missing_ref",
+            "bad_ref",
+            "number_mismatch",
+            "contradiction",
+            "empty_block",
+            "unsupported"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "detail"
+      ],
+      "title": "Issue",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "passed": {
+      "title": "Passed",
+      "type": "boolean"
+    },
+    "iterations": {
+      "default": 1,
+      "title": "Iterations",
+      "type": "integer"
+    },
+    "issues": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "title": "Issues",
+      "type": "array"
+    }
+  },
+  "required": [
+    "passed"
+  ],
+  "title": "Verification",
+  "type": "object"
+}

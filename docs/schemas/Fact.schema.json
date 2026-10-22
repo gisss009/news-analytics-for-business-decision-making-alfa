@@ -1,0 +1,48 @@
+{
+  "properties": {
+    "fact_id": {
+      "title": "Fact Id",
+      "type": "string"
+    },
+    "values": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Values",
+      "type": "array"
+    },
+    "date": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Date"
+    },
+    "quote": {
+      "title": "Quote",
+      "type": "string"
+    },
+    "modality": {
+      "enum": [
+        "stated",
+        "expected",
+        "speculation"
+      ],
+      "title": "Modality",
+      "type": "string"
+    }
+  },
+  "required": [
+    "fact_id",
+    "quote",
+    "modality"
+  ],
+  "title": "Fact",
+  "type": "object"
+}
