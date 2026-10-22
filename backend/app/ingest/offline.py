@@ -11,7 +11,7 @@ from pathlib import Path
 
 from app.core.config import settings
 from app.core.db import session
-from app.ingest import classify, dedupe, facts, store  # noqa: F401  (store регистрирует таблицы)
+from app.ingest import classify, dedupe, facts, index, store  # noqa: F401  (store регистрирует таблицы)
 from app.ingest.sources.base import Source
 from app.ingest.sources.fixtures import FixtureSource
 
@@ -70,12 +70,13 @@ def load_analytics(path: Path | None = None) -> dict:
 
 
 def run(include_holdout: bool = True) -> dict:
-    """Полный офлайн-конвейер. Следующие шаги (дедупликация, классификация, факты, индекс) добавляются сюда."""
+    """Полный офлайн-конвейер: загрузка → дедупликация → классификация → факты → индекс."""
     stats = load_news([FixtureSource(include_holdout=include_holdout)])
     stats.update(load_analytics())
     stats.update(dedupe.run())
     stats.update(classify.run())
     stats.update(facts.run())
+    stats.update(index.build())
     return stats
 
 
