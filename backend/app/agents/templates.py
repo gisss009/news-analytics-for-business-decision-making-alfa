@@ -33,7 +33,9 @@ def generate(data: dict) -> dict:
     """data — контекст интерпретатора (см. interpreter.build_context). Возвращает черновик блоков."""
     ev, co, feats = data["event"], data["company"], data["features"]
     topic, issues = ev["topic"], data.get("issues", [])
-    bad_ids = {i["claim_id"] for i in issues if i.get("claim_id")}
+    # утверждения шаблона строятся из дословных цитат, поэтому number_mismatch исправляется перегенерацией;
+    # остальные замечания (битая ссылка, слух, противоречие) убирают утверждение
+    bad_ids = {i["claim_id"] for i in issues if i.get("claim_id") and i["type"] != "number_mismatch"}
     has = lambda n: feats.get(n, {}).get("value") is True  # noqa: E731
     facts = ev["facts"]
     stated = [f for f in facts if f["modality"] != "speculation"]

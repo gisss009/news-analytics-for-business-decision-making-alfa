@@ -68,10 +68,10 @@ def test_fallback_when_model_unavailable(demo_db, monkeypatch):
     assert method == "fallback" and blocks.why_it_matters.claims
 
 
-@pytest.mark.parametrize("issue_claim", ["w1", "y1"])
+@pytest.mark.parametrize("issue_claim", ["w1", "y1"])  # bad_ref убирает утверждение
 def test_issues_remove_flagged_claims(demo_db, issue_claim):
     ev, cc = get_event("ev_n001"), company_context("U_S0001")
     ctx = build_context(ev, cc, score_event(cc, ev), [], "cfo")
-    ctx["issues"] = [{"claim_id": issue_claim, "type": "number_mismatch", "detail": "x"}]
+    ctx["issues"] = [{"claim_id": issue_claim, "type": "bad_ref", "detail": "x"}]
     blocks, _ = interpret(ctx, bank_view(ev, "U_S0001")[0])
     assert issue_claim not in {c.id for _, c in blocks.all_claims()}
