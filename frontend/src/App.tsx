@@ -1,5 +1,7 @@
 import { NavLink, Outlet, Route, Routes } from "react-router-dom";
 
+import { Clients } from "./pages/Clients";
+import { Feed } from "./pages/Feed";
 import { Home } from "./pages/Home";
 import { NotFound } from "./pages/NotFound";
 
@@ -27,6 +29,8 @@ export function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Home />} />
+        <Route path="clients" element={<Clients />} />
+        <Route path="clients/:clientId" element={<Feed />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
