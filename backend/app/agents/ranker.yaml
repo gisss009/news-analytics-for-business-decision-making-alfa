@@ -1,0 +1,54 @@
+# Персонализированное ранжирование событий: score = Σ weight·component / Σ weight (0..1).
+# Веса — экспертная оценка; калибровать на размеченном наборе (qa.metrics-rank).
+weights:
+  exposure: 0.40       # чувствительность компании к теме события (data/exposure)
+  sector: 0.22         # событие затрагивает отрасль компании
+  geo: 0.08            # страны ВЭД или регион компании упомянуты в событии
+  counterparty: 0.10   # событие затрагивает отрасли контрагентов
+  freshness: 0.10      # свежесть (полураспад half_life_days)
+  source: 0.05         # надёжность источника
+  significance: 0.08   # число независимых источников
+
+half_life_days: 14
+# макротемы касаются всех компаний: для них совпадение отрасли не обязательно,
+# компонент sector = max(совпадение отрасли, чувствительность к теме)
+macro_topics: [rate, fx, inflation, capital_markets]
+source_weight: {news: 1.0, blog: 0.2}
+
+# тема → признаки чувствительности; для commodities берётся конкретный товар события
+topic_exposures:
+  rate: [rate_sensitivity]
+  fx: [fx_exposure]
+  inflation: [inflation_sensitivity]
+  regulation: [regulation_sensitivity]
+  taxes: [regulation_sensitivity]
+  sanctions_trade: [sanctions_exposure, fx_exposure]
+  industry: [demand_sensitivity]
+  capital_markets: [rate_sensitivity]
+  commodities: [commodity_links]
+  other: []
+topic_factor: {capital_markets: 0.6, other: 0.0}
+
+# для отраслевых тем чувствительность без совпадения отрасли ослабляется
+sector_specific_topics: [regulation, taxes, industry, sanctions_trade]
+sector_mismatch_factor: 0.4
+
+commodity_keywords:
+  oil: [нефт, brent, urals, опек, бензин, дизел, топлив, нефтепродукт]
+  gold: [золот, драгмет]
+  metals: [сталь, стальн, прокат, металлург, металлопрокат]
+  grain: [зерн, пшениц, урожа]
+
+fts_country_codes: {КИТАЙ: CN, ТУРЦИЯ: TR, КАЗАХСТАН: KZ, УЗБЕКИСТАН: UZ, ОАЭ: AE, ИНДИЯ: IN, ГОНКОНГ: CN, БЕЛАРУСЬ: BY, АРМЕНИЯ: AM}
+
+# акценты ролей ЛПР: множитель к score по теме события
+roles:
+  ceo: {industry: 1.15, regulation: 1.1, sanctions_trade: 1.1}
+  cfo: {rate: 1.15, fx: 1.1, capital_markets: 1.1, inflation: 1.05}
+  treasurer: {fx: 1.2, rate: 1.15, capital_markets: 1.15}
+  accountant: {taxes: 1.25, regulation: 1.15}
+
+judge:
+  enabled: true
+  top_k: 3
+  max_adjust: 0.1      # LLM-судья может сдвинуть score не больше чем на ±0.1

@@ -26,12 +26,12 @@ sectors:
     title: Оптовая торговля металлами и рудами
     prefixes: ["46.72"]
     factors: {metals: 0.9, rate: 0.6, fx: 0.6, sanctions: 0.5}
-    keywords: [металл, стал, прокат, руд]
+    keywords: [металл, сталь, стальн, сталел, прокат, руд]
   food_trade:
     title: Оптовая торговля продовольствием
     prefixes: ["46.2", "46.3"]
     factors: {grain: 0.6, inflation: 0.8, demand: 0.7, fx: 0.6, rate: 0.6, regulation: 0.4}
-    keywords: [продовольств, продукт питания, зерн, напит, мясо, молок]
+    keywords: [продовольств, продукт, зерн, напит, мясо, молок]
   pharma_trade:
     title: Оптовая торговля лекарствами
     prefixes: ["46.46"]
@@ -91,7 +91,7 @@ sectors:
     title: Добыча и металлургия
     prefixes: ["05", "07", "08", "09", "24", "25"]
     factors: {metals: 0.9, fx: 0.8, sanctions: 0.7, rate: 0.6, regulation: 0.5}
-    keywords: [металлург, стал, металл, руд, уголь, никел, алюмин, медь]
+    keywords: [металлург, сталь, стальн, сталел, металл, руд, уголь, никел, алюмин, медь]
   gold_mining:
     title: Добыча драгоценных металлов
     prefixes: ["07.29"]
