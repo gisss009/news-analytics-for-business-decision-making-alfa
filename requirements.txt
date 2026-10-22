@@ -1,0 +1,2 @@
+pyfinews==0.1.7
+PyMuPDF==1.27.2.3

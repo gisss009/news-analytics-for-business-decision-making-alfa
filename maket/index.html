@@ -3,12 +3,142 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
+  <title>Сводка для бизнеса</title>
   <link rel="stylesheet" href="site.css">
 </head>
 <body>
-  <p class="phrase" id="phrase"></p>
-  <button class="secret" id="secret" type="button" tabindex="-1" aria-hidden="true"></button>
+  <header class="top">
+    <nav class="nav" aria-label="Разделы">
+      <button type="button" id="nav-home">Главная</button>
+      <button type="button" id="nav-entry">Сводка</button>
+      <button type="button" id="nav-news">Новости</button>
+    </nav>
+    <p class="count" id="count">Собираем сводку</p>
+  </header>
+
+  <main>
+    <section id="home">
+      <p class="crumb">Главный экран</p>
+      <h1>Сводка для решений</h1>
+      <p class="lead">Точка входа всегда здесь. Дальше выбирается компания, потом событие, которое важно именно ей: факты, позиция банка, риски и шаг.</p>
+      <button class="entry-tile" id="enter-service" type="button">
+        <span class="kicker">Открыть сервис</span>
+        <strong>Разобрать событие для компании</strong>
+        <span>Не лента новостей. Интерпретация с учётом кредитов, выручки и поставок.</span>
+      </button>
+    </section>
+
+    <section id="news" hidden>
+      <h1>Новости</h1>
+      <p class="lead">Бизнес и экономика. У каждой заметки сайт, с которого она взята, и сколько времени назад она вышла.</p>
+      <div class="news-list" id="news-list"></div>
+    </section>
+
+    <section id="entry" hidden>
+      <h1>Для кого сводка</h1>
+      <p class="lead">Выберите компанию. Дальше будет разбор её события: несколько факторов, риски, возможности и шаг, если он правда следует.</p>
+      <p class="lead note">Компании синтетические: в этой сборке нет карточек реальных клиентов. Цифры и формулировки берутся из новостей и обзоров банка.</p>
+      <div class="companies" id="companies"></div>
+    </section>
+
+    <section id="events" hidden>
+      <p class="crumb" id="crumb"></p>
+      <h1 id="events-title"></h1>
+      <p class="lead" id="events-lead"></p>
+      <div class="stories" id="stories"></div>
+    </section>
+
+    <section id="reading" hidden>
+      <button class="back" id="back" type="button">К событиям</button>
+      <article class="reading" id="reading-body"></article>
+    </section>
+  </main>
+
+  <div class="parade" id="parade"></div>
+  <button class="minion-switch" id="minion-switch" type="button" aria-pressed="false" aria-label="Миньоны"></button>
+  <button class="toaster" id="toaster" type="button" aria-label="Тостер" aria-expanded="false">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="5" y="12" width="18" height="14" rx="3" fill="#e7ebf0"/>
+      <rect x="8" y="9" width="4.5" height="5" rx="1" fill="#1a0908"/>
+      <rect x="14.5" y="9" width="4.5" height="5" rx="1" fill="#1a0908"/>
+      <rect x="23.5" y="15" width="3.5" height="7" rx="1" fill="#8d1018"/>
+      <rect x="8" y="18" width="12" height="1.6" rx="0.8" fill="#c5cad1"/>
+    </svg>
+  </button>
+  <div class="godzilla-show" id="godzilla-show" hidden>
+    <button class="godzilla-close" id="godzilla-close" type="button">Хватит</button>
+    <p class="godzilla-live" aria-live="assertive"></p>
+    <div class="godzilla-stage">
+      <div class="godzilla">
+        <p class="yell">Тебя зарикроллили!</p>
+        <div class="godzilla-bob">
+          <svg viewBox="0 0 260 360" aria-hidden="true">
+            <path d="M70 250c-40 10-70 50-58 78 22-8 40-30 52-58" fill="#6d8f38"/>
+            <path d="M92 148l14-42 14 42z" fill="#3f5c22"/>
+            <path d="M108 166l16-48 16 46z" fill="#4c6b28"/>
+            <path d="M126 184l16-40 14 38z" fill="#3f5c22"/>
+            <path d="M78 268c8 40 6 70-8 78 18 4 34-6 36-28 2-30-8-48-28-50z" fill="#5c7a30"/>
+            <path d="M96 168c-8 40-6 90 8 112h78c10-28 6-78-4-112-24 16-58 16-82 0z" fill="#1a1a1a"/>
+            <rect x="118" y="176" width="40" height="78" rx="4" fill="#f3f3f3"/>
+            <path d="M118 190h40M118 204h40M118 218h40M118 232h40" stroke="#1a1a1a" stroke-width="6"/>
+            <path d="M118 176l20 22 20-22" fill="#fff"/>
+            <path d="M150 270c10 36 14 64 4 76 20 2 36-10 34-32-2-28-16-46-38-44z" fill="#7ea344"/>
+            <path d="M146 342h46l-6 12h-34z" fill="#4f6828"/>
+            <path d="M168 196c28 8 52 28 70 36" stroke="#7ea344" stroke-width="18" stroke-linecap="round"/>
+            <path d="M232 228c8 6 14 8 18 4" stroke="#7ea344" stroke-width="10" stroke-linecap="round"/>
+            <path d="M104 190c-30 16-36 48-20 62" stroke="#1a1a1a" stroke-width="16" stroke-linecap="round"/>
+            <circle cx="86" cy="256" r="12" fill="#efc2a4"/>
+            <rect x="122" y="142" width="28" height="30" rx="8" fill="#7ea344"/>
+            <ellipse cx="136" cy="124" rx="42" ry="36" fill="#8aaf4c"/>
+            <path d="M98 112c4-48 36-62 52-40 18-28 48-16 46 16-20-18-40-8-52 6-10-10-28-8-46 18z" fill="#e15a1c"/>
+            <ellipse cx="172" cy="132" rx="26" ry="16" fill="#9bc15a"/>
+            <path d="M154 138c16 22 36 18 48-2-18 8-34 6-48 2z" fill="#5c1016"/>
+            <path d="M160 134l4 12 6-12M174 136l4 12 6-12M188 134l4 10 5-10" fill="#fff"/>
+            <ellipse cx="146" cy="114" rx="8" ry="7" fill="#fff"/>
+            <circle cx="149" cy="115" r="3.5" fill="#1a0908"/>
+            <path d="M136 104c8-4 16-2 22 2" stroke="#3f5c22" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="104" cy="124" r="7" fill="#e24b3a"/>
+          </svg>
+        </div>
+      </div>
+      <figure class="rick-photo">
+        <img src="assets/rickroll.webp" alt="Кадр, который вынесли Годзиллы">
+      </figure>
+      <div class="godzilla godzilla-right">
+        <p class="yell">Тебя зарикроллили!</p>
+        <div class="godzilla-bob">
+          <svg viewBox="0 0 260 360" aria-hidden="true">
+            <path d="M70 250c-40 10-70 50-58 78 22-8 40-30 52-58" fill="#6d8f38"/>
+            <path d="M92 148l14-42 14 42z" fill="#3f5c22"/>
+            <path d="M108 166l16-48 16 46z" fill="#4c6b28"/>
+            <path d="M126 184l16-40 14 38z" fill="#3f5c22"/>
+            <path d="M78 268c8 40 6 70-8 78 18 4 34-6 36-28 2-30-8-48-28-50z" fill="#5c7a30"/>
+            <path d="M96 168c-8 40-6 90 8 112h78c10-28 6-78-4-112-24 16-58 16-82 0z" fill="#1a1a1a"/>
+            <rect x="118" y="176" width="40" height="78" rx="4" fill="#f3f3f3"/>
+            <path d="M118 190h40M118 204h40M118 218h40M118 232h40" stroke="#1a1a1a" stroke-width="6"/>
+            <path d="M118 176l20 22 20-22" fill="#fff"/>
+            <path d="M150 270c10 36 14 64 4 76 20 2 36-10 34-32-2-28-16-46-38-44z" fill="#7ea344"/>
+            <path d="M146 342h46l-6 12h-34z" fill="#4f6828"/>
+            <path d="M168 196c28 8 52 28 70 36" stroke="#7ea344" stroke-width="18" stroke-linecap="round"/>
+            <path d="M232 228c8 6 14 8 18 4" stroke="#7ea344" stroke-width="10" stroke-linecap="round"/>
+            <path d="M104 190c-30 16-36 48-20 62" stroke="#1a1a1a" stroke-width="16" stroke-linecap="round"/>
+            <circle cx="86" cy="256" r="12" fill="#efc2a4"/>
+            <rect x="122" y="142" width="28" height="30" rx="8" fill="#7ea344"/>
+            <ellipse cx="136" cy="124" rx="42" ry="36" fill="#8aaf4c"/>
+            <path d="M98 112c4-48 36-62 52-40 18-28 48-16 46 16-20-18-40-8-52 6-10-10-28-8-46 18z" fill="#e15a1c"/>
+            <ellipse cx="172" cy="132" rx="26" ry="16" fill="#9bc15a"/>
+            <path d="M154 138c16 22 36 18 48-2-18 8-34 6-48 2z" fill="#5c1016"/>
+            <path d="M160 134l4 12 6-12M174 136l4 12 6-12M188 134l4 10 5-10" fill="#fff"/>
+            <ellipse cx="146" cy="114" rx="8" ry="7" fill="#fff"/>
+            <circle cx="149" cy="115" r="3.5" fill="#1a0908"/>
+            <path d="M136 104c8-4 16-2 22 2" stroke="#3f5c22" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="104" cy="124" r="7" fill="#e24b3a"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="scenario.js"></script>
   <script src="site.js"></script>
 </body>
 </html>
