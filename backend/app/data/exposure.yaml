@@ -1,0 +1,53 @@
+# Производные признаки чувствительности компании (0..1). Ссылка в выводах: exp:<name>.
+# Веса — экспертная оценка; калибровать на размеченном наборе (qa.metrics-rank).
+
+rate_sensitivity:        # ключевая ставка: стоимость долга и спрос в отрасли
+  sector_weight: 0.4     # × чувствительность отрасли к ставке из okved_map
+  products: {has_loans: 0.3, has_leasing: 0.15, has_factoring: 0.1, has_guarantees: 0.05}
+  deposits_offset: 0.0   # депозиты не снижают риск, но дают возможность (учитывает интерпретатор)
+
+fx_exposure:             # курс рубля: импорт/экспорт и валютные расчёты
+  fts_flag: 0.45
+  per_country: 0.08
+  max_countries_bonus: 0.2
+  sector_weight: 0.25
+  foreign_ownership: 0.1
+
+commodity_links:         # зависимость от цен сырья через отрасль и контрагентов
+  commodities: [oil, metals, gold, grain]
+  sector_weight: 1.0
+  counterparty_weight: 0.4   # × доля объёма с контрагентами сырьевых отраслей
+
+supply_concentration:    # зависимость от нескольких крупных поставщиков
+  share_low: 0.4         # доля топ-3 ниже — риск близок к 0
+  share_high: 0.9        # выше — риск 1
+  min_suppliers: 3       # меньше поставщиков → +0.2
+
+region_risk:             # специфика региона: логистика, приграничье, санкционная нагрузка
+  default: 0.2
+  regions:
+    Приморский край: 0.6
+    Хабаровский край: 0.5
+    Калининградская область: 0.6
+    Красноярский край: 0.4
+    Краснодарский край: 0.35
+
+group_dependency:        # зависимость от группы компаний
+  per_member: 0.1
+  max_members_score: 0.4
+  intra_share_weight: 0.6
+
+inflation_sensitivity:   # инфляция издержек и цен
+  sector_weight: 0.8
+  products: {has_payroll: 0.1}
+
+demand_sensitivity:      # потребительский спрос
+  sector_weight: 1.0
+
+sanctions_exposure:      # санкции и ограничения ВЭД
+  sector_weight: 0.5
+  fts_flag: 0.3
+  foreign_ownership: 0.2
+
+regulation_sensitivity:  # регулирование и налоги
+  sector_weight: 1.0
