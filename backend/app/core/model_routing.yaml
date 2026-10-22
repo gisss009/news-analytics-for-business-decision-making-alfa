@@ -1,0 +1,25 @@
+# Шаг обработки → модель. Только модели из ALLOWED_MODELS (backend/app/llm/client.py, docs/01-spec.md §3).
+# Менять после замеров стоимости (qa.cost).
+steps:
+  classify: gemma-4-26b-a4b
+  facts: gemma-4-26b-a4b
+  profile_summary: gemma-4-26b-a4b
+  plan: qwen3.6-35b-a3b
+  rank_judge: gemma-4-26b-a4b
+  bank_view: qwen3.6-35b-a3b
+  interpret: glm-5.3-flash
+  verify: qwen3.6-35b-a3b
+  followup: qwen3.6-35b-a3b
+default: qwen3.6-35b-a3b
+
+# Имя модели у провайдера, если оно отличается от нашего (заполнить, когда станет известен формат общего ключа).
+provider_ids: {}
+
+# Оценка цены, руб. за 1000 токенов (вход+выход). ПРЕДВАРИТЕЛЬНО: уточнить по тарифу общего ключа.
+prices_rub_per_1k:
+  gemma-4-26b-a4b: 0.02
+  glm-5.3-flash: 0.05
+  qwen3.6-35b-a3b: 0.03
+  deepseek-v4.1-flash: 0.04
+  qwen3-vl-30b-a3b-instruct: 0.04
+  kimi-k2.6: 0.08
