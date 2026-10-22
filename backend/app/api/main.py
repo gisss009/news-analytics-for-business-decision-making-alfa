@@ -101,3 +101,9 @@ def health() -> Health:
             except Exception:  # noqa: BLE001 — таблицы ещё нет до первой загрузки данных
                 return 0
         return Health(ok=True, llm_mode=settings.llm_mode, companies=count("companies"), events=count("clusters"))
+
+
+# маршруты подключаются после объявления app и обработчиков ошибок
+from app.api import routes_clients  # noqa: E402
+
+app.include_router(routes_clients.router)
