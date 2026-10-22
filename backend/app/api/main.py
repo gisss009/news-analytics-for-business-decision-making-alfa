@@ -107,3 +107,6 @@ def health() -> Health:
 from app.api import routes_clients  # noqa: E402
 
 app.include_router(routes_clients.router)
+from app.api import routes_feed  # noqa: E402
+
+app.include_router(routes_feed.router)
