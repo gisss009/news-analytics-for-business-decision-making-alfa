@@ -12,8 +12,14 @@ steps:
   followup: qwen3.6-35b-a3b
 default: qwen3.6-35b-a3b
 
-# Имя модели у провайдера, если оно отличается от нашего (заполнить, когда станет известен формат общего ключа).
-provider_ids: {}
+# Имя модели у провайдера общего ключа (точно как в списке «Доступные модели» инструкции к ключу).
+provider_ids:
+  gemma-4-26b-a4b: google/gemma-4-26b-a4b-it
+  glm-5.3-flash: z-ai/glm-5.3-flash
+  qwen3.6-35b-a3b: qwen/qwen3.6-35b-a3b
+  deepseek-v4.1-flash: deepseek/deepseek-v4.1-flash
+  qwen3-vl-30b-a3b-instruct: qwen/qwen3-vl-30b-a3b-instruct
+  kimi-k2.6: moonshotai/kimi-k2.6
 
 # Оценка цены, руб. за 1000 токенов (вход+выход). ПРЕДВАРИТЕЛЬНО: уточнить по тарифу общего ключа.
 prices_rub_per_1k:

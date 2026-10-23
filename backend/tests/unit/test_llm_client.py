@@ -45,6 +45,12 @@ def test_routing_uses_only_allowed_models():
     assert len(ALLOWED_MODELS) == 6
 
 
+def test_every_allowed_model_has_provider_id():
+    ids = model_routing()["provider_ids"]
+    assert set(ids) == ALLOWED_MODELS
+    assert all(v.endswith(k) or v.endswith(k + "-it") for k, v in ids.items())
+
+
 def test_disallowed_model_rejected():
     with pytest.raises(ModelNotAllowed):
         complete("echo", [{"role": "user", "content": "x"}], model="gpt-4o")
@@ -82,7 +88,7 @@ def test_invalid_json_gets_one_repair_attempt(real_mode, monkeypatch):
     seen = serve(monkeypatch, [(200, "not json"), (200, '```json\n{"topic": "rate"}\n```')])
     assert complete("classify", [{"role": "user", "content": "x"}], schema=Out) == Out(topic="rate")
     assert len(seen) == 2 and "не прошёл проверку" in seen[1]["messages"][-1]["content"]
-    assert seen[0]["model"] == "gemma-4-26b-a4b" and seen[0]["response_format"] == {"type": "json_object"}
+    assert seen[0]["model"] == "google/gemma-4-26b-a4b-it" and seen[0]["response_format"] == {"type": "json_object"}
 
 
 def test_invalid_json_twice_raises(real_mode, monkeypatch):
