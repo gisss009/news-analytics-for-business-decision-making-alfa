@@ -1,4 +1,4 @@
-"""Интерфейс источника новостей. Новый источник = новый класс Source + строка в REGISTRY."""
+"""Интерфейс источника новостей. Новый источник = новый класс Source + строка в sources.fixtures.registry()."""
 from abc import ABC, abstractmethod
 from datetime import datetime
 
@@ -21,6 +21,8 @@ class RawArticle(BaseModel):
     source_type: str = "news"
     synthetic: bool = False
     holdout: bool = False
+    topic_hint: str | None = None      # тема поискового запроса, которым новость нашлась
+    text_status: str = "full"          # full | summary | title_only (текст страницы не получен)
 
 
 class Source(ABC):

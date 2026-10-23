@@ -1,6 +1,6 @@
 """STUB: источник новостей из офлайн-фикстур (data/fixtures/news) вместо сбора из интернета.
 
-Замена: класс настоящего источника (RSS/HTML) с тем же интерфейсом Source и регистрация в REGISTRY.
+Замена: класс настоящего источника (RSS/HTML) с тем же интерфейсом Source и регистрация в registry().
 """
 from datetime import datetime
 
@@ -26,4 +26,7 @@ class FixtureSource(Source):
                           source_name=i.source.name, source_type=i.source.type, synthetic=True, holdout=i.holdout)
 
 
-REGISTRY: dict[str, type[Source]] = {"fixtures": FixtureSource}
+def registry() -> dict[str, type[Source]]:
+    """Источники по имени. Новый источник = класс Source + строка здесь."""
+    from app.ingest.sources.pyfinews_source import PyfinewsSource
+    return {"fixtures": FixtureSource, "live": PyfinewsSource}
