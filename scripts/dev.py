@@ -2,7 +2,9 @@
 
   python scripts/dev.py              # демо без ключа LLM (LLM_MODE=stub)
   python scripts/dev.py --no-browser # не открывать браузер
-  python scripts/dev.py --real       # режим real: нужен LLM_API_KEY в .env
+  python scripts/dev.py --real       # модель при разборе событий: нужен LLM_API_KEY в .env; данные готовятся без неё
+  python scripts/dev.py --real-ingest # как --real, плюс модель при подготовке данных (темы новостей, формулировки
+                                      #   тезисов банка): первый запуск дольше на 15–20 мин, дальше — из кэша
   python scripts/dev.py --live       # свежие новости из интернета (pyfinews) вместо офлайн-набора, ~3 мин
 
 Аналитика банка: если в data/analytics есть PDF кейса (python scripts/fetch_data.py), они распознаются OCR
@@ -104,19 +106,23 @@ def main() -> int:
         stream.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--no-browser", action="store_true")
-    ap.add_argument("--real", action="store_true", help="LLM_MODE=real (по умолчанию stub)")
+    ap.add_argument("--real", action="store_true", help="модель при разборе событий (по умолчанию stub)")
+    ap.add_argument("--real-ingest", action="store_true", help="модель и при подготовке данных (включает --real)")
     ap.add_argument("--live", action="store_true", help="живые новости pyfinews вместо офлайн-набора (нужна сеть)")
     a = ap.parse_args()
 
     ensure_docker()
     ensure_venv()
-    env = {**os.environ, "LLM_MODE": "real" if a.real else "stub", "PYTHONUTF8": "1"}
+    real = a.real or a.real_ingest
+    env = {**os.environ, "LLM_MODE": "real" if real else "stub", "PYTHONUTF8": "1"}
+    # подготовка данных без модели, если не просили --real-ingest: иначе ~70 медленных вызовов на каждый запуск
+    ingest_env = {**env, "LLM_MODE": "real" if a.real_ingest else "stub"}
 
     ensure_ocr()
     say("готовлю данные: синтетические компании, " + ("свежие новости из интернета (~3 мин)" if a.live
         else "офлайн-набор новостей") + " и аналитика банка…")
-    run_py(env, "-m", "app.data.loader", "--source", "synthetic")
-    run_py(env, "-m", "app.ingest.pipeline", "--news", "live" if a.live else "fixtures", "--analytics", "auto",
+    run_py(ingest_env, "-m", "app.data.loader", "--source", "synthetic")
+    run_py(ingest_env, "-m", "app.ingest.pipeline", "--news", "live" if a.live else "fixtures", "--analytics", "auto",
            show=True)
 
     say("запускаю backend на http://127.0.0.1:8000 …")
