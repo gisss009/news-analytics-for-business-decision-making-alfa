@@ -33,3 +33,4 @@ frontend/dist/
 Thumbs.db
 data/analytics/*.pdf
 *.tsbuildinfo
+data/analytics/.ocr/
