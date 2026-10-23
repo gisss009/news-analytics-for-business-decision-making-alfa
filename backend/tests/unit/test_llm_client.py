@@ -89,6 +89,7 @@ def test_invalid_json_gets_one_repair_attempt(real_mode, monkeypatch):
     assert complete("classify", [{"role": "user", "content": "x"}], schema=Out) == Out(topic="rate")
     assert len(seen) == 2 and "не прошёл проверку" in seen[1]["messages"][-1]["content"]
     assert seen[0]["model"] == "google/gemma-4-26b-a4b-it" and seen[0]["response_format"] == {"type": "json_object"}
+    assert seen[0]["reasoning"] == {"enabled": False}  # без рассуждения: быстрее и дешевле
 
 
 def test_invalid_json_twice_raises(real_mode, monkeypatch):

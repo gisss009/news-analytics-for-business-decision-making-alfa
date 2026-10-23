@@ -61,6 +61,8 @@ def get_or_run(company_id: str, event_id: str, role: str = "cfo", on_step=None) 
     if row:
         return Insight.model_validate_json(row["json"]), True
     state = run_insight(company_id, event_id, role, on_step=on_step)
+    if state.insight.status == "FALLBACK":  # сбой модели (таймаут, бюджет) не закрепляется: следующий запрос повторит
+        return state.insight, False
     with session() as conn:
         conn.execute("INSERT OR REPLACE INTO insights_cache (key, company_id, event_id, role, run_id, json, created_at) "
                      "VALUES (?, ?, ?, ?, ?, ?, ?)",

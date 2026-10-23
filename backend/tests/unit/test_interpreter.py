@@ -61,6 +61,19 @@ def test_llm_cannot_inject_bank_claims_or_bad_labels(demo_db, monkeypatch):
                                         for c in blocks.what_happened.claims)
 
 
+def test_single_bad_claim_is_dropped_not_whole_answer(demo_db, monkeypatch):
+    good = stubs._HANDLERS["interpret"]
+
+    def one_bad(messages, data):  # как ответ реальной модели 23.10.2026: у вывода ИИ нет ссылки на признак
+        out = good(messages, data)
+        out["actions"] = out["actions"] + [{"id": "a9", "text": "Пересмотреть цены", "label": "model_inference",
+                                            "refs": ["news:n001"]}]
+        return out
+    monkeypatch.setitem(stubs._HANDLERS, "interpret", one_bad)
+    blocks, method = run("U_S0001", "ev_n001")
+    assert method == "stub" and blocks.actions.claims and all(c.id != "a9" for c in blocks.actions.claims)
+
+
 def test_fallback_when_model_unavailable(demo_db, monkeypatch):
     monkeypatch.setattr(settings, "llm_mode", "real")
     monkeypatch.setattr(settings, "llm_api_key", SecretStr(""))

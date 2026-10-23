@@ -7,7 +7,7 @@ STUB: в режиме stub ответ модели строится теми ж�
 """
 from pathlib import Path
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from app.agents import templates
 from app.agents.ranker import CompanyContext, event_commodities
@@ -32,6 +32,32 @@ class Draft(BaseModel):
     risks: list[Claim] = []
     opportunities: list[Claim] = []
     actions: list[Claim] = []
+
+
+class _RawDraft(BaseModel):
+    """Ответ модели до проверки утверждений по одному: одно плохое утверждение не должно губить весь ответ."""
+    what_happened: list[dict] = []
+    why_it_matters: list[dict] = []
+    risks: list[dict] = []
+    opportunities: list[dict] = []
+    actions: list[dict] = []
+
+
+def _accept(raw: _RawDraft) -> Draft:
+    """Оставляет только утверждения, прошедшие схему Claim (метка и ссылки); без «Что произошло» — ошибка."""
+    out, dropped = {}, []
+    for block in Draft.model_fields:
+        out[block] = []
+        for c in getattr(raw, block):
+            try:
+                out[block].append(Claim.model_validate(c))
+            except ValidationError as e:
+                dropped.append(f"{block}:{c.get('id', '?')}: {e.errors()[0]['msg'][:120]}")
+    if dropped:
+        log.warning("interpret_claims_dropped", extra={"dropped": dropped})
+    if not out["what_happened"]:
+        raise LLMError("interpret: не осталось утверждений «Что произошло»: " + "; ".join(dropped)[:300])
+    return Draft(**out)
 
 
 stubs.register("interpret", lambda messages, data: templates.generate(data))
@@ -78,7 +104,7 @@ def interpret(context: dict, bank_block: BankViewBlock) -> tuple[Blocks, str]:
     msgs = [{"role": "system", "content": PROMPT}, {"role": "user", "content": data_block(context)}]
     method = "stub"
     try:
-        draft = complete("interpret", msgs, schema=Draft)
+        draft = _accept(complete("interpret", msgs, schema=_RawDraft))
         method = "llm" if not _stub_mode() else "stub"
     except LLMError as e:
         log.warning("interpret_fallback", extra={"error": str(e)[:200]})

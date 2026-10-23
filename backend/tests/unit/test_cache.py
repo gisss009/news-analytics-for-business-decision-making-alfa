@@ -37,3 +37,18 @@ def test_key_depends_on_company_and_role(demo_db):
     get_or_run("U_S0001", "ev_n001", "cfo")
     assert not get_or_run("U_S0001", "ev_n001", "treasurer")[1]
     assert not get_or_run("U_S0004", "ev_n001", "cfo")[1]
+
+
+def test_fallback_is_not_cached(demo_db, monkeypatch):
+    from app.llm.errors import LLMError
+
+    original = interpreter.complete
+
+    def fail(*a, **k):
+        raise LLMError("таймаут")
+    monkeypatch.setattr(interpreter, "complete", fail)
+    first, _ = get_or_run("U_S0001", "ev_n001")
+    assert first.status == "FALLBACK"
+    monkeypatch.setattr(interpreter, "complete", original)
+    second, cached = get_or_run("U_S0001", "ev_n001")
+    assert not cached and second.status != "FALLBACK"

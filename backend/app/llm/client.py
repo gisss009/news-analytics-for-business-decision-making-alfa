@@ -168,8 +168,10 @@ def _http_call(model: str, messages: list[dict], temperature: float, json_mode: 
     key = settings.llm_api_key.get_secret_value()
     if not key:
         raise LLMError("LLM_MODE=real, но LLM_API_KEY не задан")
-    provider_model = (model_routing().get("provider_ids") or {}).get(model, model)
-    body: dict[str, Any] = {"model": provider_model, "messages": messages, "temperature": temperature}
+    routing = model_routing()
+    provider_model = (routing.get("provider_ids") or {}).get(model, model)
+    body: dict[str, Any] = {**(routing.get("request_extra") or {}), "model": provider_model, "messages": messages,
+                            "temperature": temperature}
     if json_mode:
         body["response_format"] = {"type": "json_object"}
     url = settings.llm_base_url.rstrip("/") + "/chat/completions"
