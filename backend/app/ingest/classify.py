@@ -121,11 +121,15 @@ def classify(title: str, text: str, use_llm: bool | None = None) -> Classificati
 
 def run() -> dict:
     with session() as conn:
-        rows = conn.execute("SELECT item_id, title, text FROM news_items").fetchall()
+        from app.ingest.fetch import ensure_columns
+        ensure_columns(conn)
+        rows = conn.execute("SELECT item_id, title, text, topic_hint FROM news_items").fetchall()
         conn.execute("DELETE FROM news_class")
         methods: dict[str, int] = {}
         for r in rows:
             c = classify(r["title"], r["text"])
+            if c.topic == "other" and r["topic_hint"]:  # тема запроса, которым нашлась живая новость
+                c = c.model_copy(update={"topic": r["topic_hint"], "confidence": 0.5, "method": f"{c.method}+query"})
             methods[c.method] = methods.get(c.method, 0) + 1
             conn.execute("INSERT INTO news_class (item_id, topic, geo, sectors, entities, confidence, method) "
                          "VALUES (?, ?, ?, ?, ?, ?, ?)",

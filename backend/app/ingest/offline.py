@@ -4,36 +4,20 @@ STUB-части: FixtureSource вместо сбора новостей; data/an
 (страница в analytics_pages содержит только перенесённые вручную фрагменты, excerpt_only=1).
 Повторный запуск идемпотентен. Запуск: python -m app.ingest.offline
 """
-import hashlib
 import json
-import re
 from pathlib import Path
 
 from app.core.config import settings
 from app.core.db import session
-from app.ingest import classify, dedupe, facts, index, store  # noqa: F401  (store регистрирует таблицы)
+from app.ingest import classify, dedupe, facts, fetch, index, store  # noqa: F401  (store регистрирует таблицы)
 from app.ingest.sources.base import Source
 from app.ingest.sources.fixtures import FixtureSource
 
 
-def text_hash(text: str) -> str:
-    norm = re.sub(r"\s+", " ", text.lower()).strip()
-    return hashlib.sha256(norm.encode("utf-8")).hexdigest()[:16]
-
-
 def load_news(sources: list[Source]) -> dict:
-    n = 0
-    with session() as conn:
-        for src in sources:
-            for link in src.fetch_list():
-                a = src.fetch_article(link)
-                conn.execute(
-                    "INSERT OR REPLACE INTO news_items (item_id, url, title, text, published_at, source_name, "
-                    "source_type, hash, synthetic, holdout) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (a.item_id, a.url, a.title, a.text, a.published_at.isoformat(), a.source_name, a.source_type,
-                     text_hash(a.text), int(a.synthetic), int(a.holdout)))
-                n += 1
-    return {"news": n}
+    stats = fetch.run(sources)
+    return {"news": stats["new"] + stats["updated"], "news_duplicates": stats["duplicates"],
+            "news_errors": stats["errors"]}
 
 
 def analytics_fixture_path() -> Path:

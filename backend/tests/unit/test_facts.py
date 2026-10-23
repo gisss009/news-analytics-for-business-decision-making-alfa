@@ -46,3 +46,10 @@ def test_pipeline_writes_facts():
     s = offline.run()
     assert s["facts"] > 0
     assert connect().execute("SELECT COUNT(*) FROM news_facts").fetchone()[0] == s["facts"]
+
+
+def test_newlines_split_title_and_paragraphs():
+    text = "ЦБ повысил прогноз инфляции до 7,1-7,6%\nБанк России ухудшил прогноз на 2026 год.\n\nВторой абзац без чисел"
+    facts = extract("w", text, 2026)
+    assert facts[0].quote == "ЦБ повысил прогноз инфляции до 7,1-7,6%"
+    assert all(text[f.span[0]:f.span[1]] == f.quote for f in facts) and len(facts) == 2
