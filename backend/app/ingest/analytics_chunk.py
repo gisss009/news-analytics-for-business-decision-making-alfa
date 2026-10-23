@@ -44,6 +44,7 @@ YEAR = re.compile(r"\b(20[2-3]\d)\b")
 NOISE = re.compile(r"^источник|^рис\.|^график|^таблица|\bbloomberg\b|@|www\.|http", re.I)
 MAX_PER_DOC = 12
 MIN_PER_DOC = 3
+REWRITE_BATCH = 4  # тезисов в одном запросе к модели: длинный ответ не укладывается в таймаут
 
 
 class Thesis(BaseModel):
@@ -156,13 +157,16 @@ REWRITE_PROMPT = ("Переформулируй каждую цитату из �
 def rewrite(theses: list[Thesis]) -> list[Thesis]:
     if settings.llm_mode != "real" or not theses:
         return theses
-    try:
-        out = complete("thesis", [{"role": "system", "content": REWRITE_PROMPT}, {"role": "user", "content": data_block(
-            {"items": [{"id": t.thesis_id, "text": t.quote} for t in theses]})}], schema=_RewriteOut)
-    except LLMError as e:
-        log.warning("thesis_rewrite_skipped", extra={"error": str(e)[:200]})
-        return theses
-    by_id = {i.id: i.thesis for i in out.items}
+    by_id: dict[str, str] = {}
+    for k in range(0, len(theses), REWRITE_BATCH):
+        batch = theses[k:k + REWRITE_BATCH]
+        try:
+            out = complete("thesis", [{"role": "system", "content": REWRITE_PROMPT}, {"role": "user", "content": data_block(
+                {"items": [{"id": t.thesis_id, "text": t.quote} for t in batch]})}], schema=_RewriteOut)
+        except LLMError as e:  # пачка остаётся с цитатами вместо формулировок
+            log.warning("thesis_rewrite_skipped", extra={"error": str(e)[:200]})
+            continue
+        by_id |= {i.id: i.thesis for i in out.items}
     return [t.model_copy(update={"text": by_id.get(t.thesis_id, t.text)}) for t in theses]
 
 
@@ -170,18 +174,19 @@ def load_from_pdfs(docs: list[Doc] | None = None) -> dict:
     """Записывает документы, полный текст страниц и тезисы из OCR в таблицы аналитики (идемпотентно)."""
     if docs is None:
         docs, _ = parse_all()
+    prepared = [(d, rewrite(extract_theses(d))) for d in docs]  # модель — до транзакции записи
     total = 0
     with session() as conn:
         conn.execute("DELETE FROM theses")
         conn.execute("DELETE FROM analytics_pages")
         conn.execute("DELETE FROM analytics_docs")
-        for d in docs:
+        for d, theses in prepared:
             conn.execute("INSERT INTO analytics_docs (doc_id, title, date, kind, file, stale, file_present) "
                          "VALUES (?, ?, ?, ?, ?, ?, 1)", (d.doc_id, d.title, d.date, d.kind, d.file, int(d.stale)))
             for p in d.pages:
                 conn.execute("INSERT INTO analytics_pages (doc_id, page, text, excerpt_only) VALUES (?, ?, ?, 0)",
                              (d.doc_id, p.n, p.text))
-            for t in rewrite(extract_theses(d)):
+            for t in theses:
                 conn.execute("INSERT INTO theses (thesis_id, doc_id, page, topic, horizon, text, quote) "
                              "VALUES (?, ?, ?, ?, ?, ?, ?)",
                              (t.thesis_id, t.doc_id, t.page, t.topic, t.horizon, t.text, t.quote))
