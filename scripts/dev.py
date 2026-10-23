@@ -3,11 +3,17 @@
   python scripts/dev.py              # демо без ключа LLM (LLM_MODE=stub)
   python scripts/dev.py --no-browser # не открывать браузер
   python scripts/dev.py --real       # режим real: нужен LLM_API_KEY в .env
+  python scripts/dev.py --live       # свежие новости из интернета (pyfinews) вместо офлайн-набора, ~3 мин
+
+Аналитика банка: если в data/analytics есть PDF кейса (python scripts/fetch_data.py), они распознаются OCR
+в Docker (один раз, ~3 мин) и тезисы берутся из OCR; без PDF — ручные тезисы data/analytics/fixtures.
 
 Требования: Python 3.11+ и запущенный Docker Desktop (Node ставить не нужно, он работает в контейнере node:24-slim).
 При первом запуске создаётся backend/.venv и ставятся зависимости. Остановка — Ctrl+C.
 """
 import argparse
+import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -21,6 +27,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BACKEND = ROOT / "backend"
 VENV_PY = BACKEND / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+ANALYTICS = ROOT / "data" / "analytics"
 CONTAINER = "news-analytics-frontend"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from node import IMAGE, NODE_MODULES_VOLUME  # noqa: E402
@@ -38,8 +45,40 @@ def ensure_venv() -> None:
     subprocess.check_call([str(VENV_PY), "-m", "pip", "install", "-q", "-r", str(BACKEND / "requirements.txt")])
 
 
-def run_py(env: dict, *args: str) -> None:
-    subprocess.check_call([str(VENV_PY), "-X", "utf8", *args], cwd=BACKEND, env=env, stdout=subprocess.DEVNULL)
+def run_py(env: dict, *args: str, show: bool = False) -> None:
+    subprocess.check_call([str(VENV_PY), "-X", "utf8", *args], cwd=BACKEND, env=env,
+                          stdout=None if show else subprocess.DEVNULL)
+
+
+def _sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def needs_ocr() -> list[str]:
+    """PDF аналитики без актуального кэша OCR (data/analytics/.ocr/<файл>.json с тем же sha256)."""
+    out = []
+    for pdf in sorted(ANALYTICS.glob("*.pdf")):
+        cache = ANALYTICS / ".ocr" / f"{pdf.name}.json"
+        try:
+            fresh = json.loads(cache.read_text(encoding="utf-8")).get("sha256") == _sha256(pdf)
+        except (OSError, ValueError):
+            fresh = False
+        if not fresh:
+            out.append(pdf.name)
+    return out
+
+
+def ensure_ocr() -> None:
+    missing = needs_ocr()
+    if not missing:
+        return
+    say(f"распознаю PDF аналитики в Docker ({len(missing)} шт., первый раз ~3 мин)…")
+    if subprocess.call([sys.executable, str(ROOT / "scripts" / "ocr.py")]) != 0:
+        say("OCR не получился (нужна сеть для первой сборки образа) — тезисы банка возьму из ручного набора")
 
 
 def ensure_docker() -> None:
@@ -66,15 +105,19 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--no-browser", action="store_true")
     ap.add_argument("--real", action="store_true", help="LLM_MODE=real (по умолчанию stub)")
+    ap.add_argument("--live", action="store_true", help="живые новости pyfinews вместо офлайн-набора (нужна сеть)")
     a = ap.parse_args()
 
     ensure_docker()
     ensure_venv()
     env = {**os.environ, "LLM_MODE": "real" if a.real else "stub", "PYTHONUTF8": "1"}
 
-    say("готовлю данные: синтетические компании и офлайн-набор новостей…")
+    ensure_ocr()
+    say("готовлю данные: синтетические компании, " + ("свежие новости из интернета (~3 мин)" if a.live
+        else "офлайн-набор новостей") + " и аналитика банка…")
     run_py(env, "-m", "app.data.loader", "--source", "synthetic")
-    run_py(env, "-m", "app.ingest.offline")
+    run_py(env, "-m", "app.ingest.pipeline", "--news", "live" if a.live else "fixtures", "--analytics", "auto",
+           show=True)
 
     say("запускаю backend на http://127.0.0.1:8000 …")
     backend = subprocess.Popen([str(VENV_PY), "-m", "uvicorn", "app.api.main:app", "--host", "127.0.0.1",

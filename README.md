@@ -18,6 +18,18 @@ python scripts/dev.py
 поднимает backend на http://127.0.0.1:8000 и frontend на http://localhost:5173 и открывает браузер.
 Ключ LLM не нужен: по умолчанию `LLM_MODE=stub`. Остановка — Ctrl+C.
 
+### Режимы источников
+
+| Команда | Новости | Аналитика банка | Что нужно |
+|---|---|---|---|
+| `python scripts/dev.py` | офлайн-набор вымышленных новостей | ручные тезисы `data/analytics/fixtures/theses.json` | ничего: без сети и ключа |
+| то же, если в `data/analytics` есть PDF кейса | офлайн-набор | тезисы правилами из OCR, полный текст страниц | PDF (`python scripts/fetch_data.py`); OCR в Docker один раз, ~3 мин, первая сборка образа — с сетью |
+| `python scripts/dev.py --live` | свежие деловые новости (Google News RSS через pyfinews, тексты статей через trafilatura) вместо офлайн-набора | как выше | сеть; загрузка ~3 мин. Если живых новостей не набралось, остаётся офлайн-набор |
+| `python scripts/dev.py --real` | как выше | как выше | `LLM_MODE=real`, `LLM_BASE_URL` и `LLM_API_KEY` в `.env` |
+
+Флаги сочетаются: `python scripts/dev.py --live --real`. Ручные тезисы с OCR-тезисами не смешиваются:
+они остаются режимом без PDF и эталоном качества (`python -m app.ingest.analytics_chunk` печатает полноту).
+
 Сценарий демо: «Открыть сервис» → выбрать компанию (например, «СтройИнвест Девелопмент» и «Сибирское Золото» —
 ленты у них разные) → открыть событие → нажать ссылку у утверждения, чтобы увидеть первоисточник.
 
@@ -26,7 +38,7 @@ python scripts/dev.py
 | Часть | Где | Что делает |
 |---|---|---|
 | Данные клиента | `backend/app/data` | загрузка CSV, профиль с источниками полей, граф платежей, чувствительность к факторам |
-| Контент | `backend/app/ingest` | новости (офлайн-набор), дедупликация, классификация, факты с цитатами, поиск BM25 (SQLite FTS5) |
+| Контент | `backend/app/ingest` | новости (офлайн-набор или pyfinews), OCR-тезисы банка, дедупликация, классификация, факты с цитатами, поиск BM25 (SQLite FTS5) |
 | Агентное ядро | `backend/app/agents` | собственный цикл Planner → инструменты → Ranker → позиция банка → Interpreter → Verifier с исправлением |
 | LLM | `backend/app/llm` | единственный клиент, 6 разрешённых моделей, дневной бюджет, кэш, режимы stub/real |
 | API | `backend/app/api` | FastAPI: клиенты, лента, инсайт (+ поток шагов SSE), первоисточники; документация на `/docs` |
@@ -37,9 +49,11 @@ python scripts/dev.py
 - **LLM.** В режиме `stub` ответы моделей детерминированные: план по умолчанию, тексты блоков по шаблонам из фактов,
   признаков и тезисов банка. Контракт тот же, что у модели (label и refs у каждого утверждения). Режим `real`:
   `LLM_MODE=real`, `LLM_BASE_URL` и `LLM_API_KEY` в `.env` (см. `.env.example`).
-- **Новости.** Офлайн-набор вымышленных новостей `data/fixtures/news` вместо сбора из интернета (за интерфейсом `Source`).
-- **Аналитика банка.** PDF — сканы без текстового слоя, поэтому тезисы с дословными цитатами и номерами страниц
-  перенесены вручную в `data/analytics/fixtures/theses.json`. Сами PDF в репозиторий не попадают.
+- **Новости.** По умолчанию офлайн-набор вымышленных новостей `data/fixtures/news` (за интерфейсом `Source`),
+  чтобы демо работало без сети; живые новости — флаг `--live`.
+- **Аналитика банка.** Без PDF — тезисы с дословными цитатами и номерами страниц, перенесённые вручную в
+  `data/analytics/fixtures/theses.json`. С PDF — OCR (Tesseract в Docker) и тезисы правилами. Сами PDF и кэш OCR
+  в репозиторий не попадают.
 - **Клиенты.** Только синтетические данные `data/synthetic` в схеме датасета кейса (`docs/data-dictionary.md`).
 
 ## Разработка
@@ -52,7 +66,8 @@ cd backend && .venv/Scripts/python -m pytest -q
 python scripts/node.py npm run build
 ```
 
-Отдельные шаги: `python -m app.data.loader`, `python -m app.ingest.offline`,
+Отдельные шаги: `python -m app.data.loader`, `python -m app.ingest.pipeline --news fixtures|live --analytics auto|fixtures|pdf`,
 `python -m app.agents.ranker U_S0001`, `python -m app.agents.orchestrator U_S0004 ev_n010` (из папки `backend`).
 Схема API для фронтенда: `python -m app.api.export_openapi ../frontend/openapi.json`, затем `python scripts/node.py npm run gen:api`.
 Скачать датасет и PDF кейса (в git не попадают): `python scripts/fetch_data.py`, ссылки — в `.env`.
+Распознать PDF без запуска демо: `python scripts/ocr.py` (`--force` — заново).
