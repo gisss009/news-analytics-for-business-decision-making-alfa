@@ -14,9 +14,6 @@ const eventsLead = document.querySelector("#events-lead");
 const navHome = document.querySelector("#nav-home");
 const navNews = document.querySelector("#nav-news");
 const navEntry = document.querySelector("#nav-entry");
-const parade = document.querySelector("#parade");
-const minionSwitch = document.querySelector("#minion-switch");
-
 const state = {
   cards: [],
   news: [],
@@ -27,73 +24,12 @@ const state = {
   storyId: null,
 };
 
-minionSwitch.addEventListener("click", () => {
-  const on = document.body.classList.toggle("minions-on");
-  minionSwitch.setAttribute("aria-pressed", on ? "true" : "false");
-});
-
-const godzillaShow = document.querySelector("#godzilla-show");
-const toaster = document.querySelector("#toaster");
-const godzillaLive = godzillaShow.querySelector(".godzilla-live");
-let yellTimers = [];
-
-function stopYell() {
-  yellTimers.forEach((timer) => clearTimeout(timer));
-  yellTimers = [];
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
-}
-
-function yellRickroll() {
-  stopYell();
-  godzillaLive.textContent = "Тебя зарикроллили!";
-  if (!window.speechSynthesis) return;
-  const line = "Тебя зарикроллили!";
-  [{ pitch: 0.4, delay: 0 }, { pitch: 0.75, delay: 160 }, { pitch: 0.35, delay: 1300 }].forEach((voice) => {
-    yellTimers.push(setTimeout(() => {
-      const utter = new SpeechSynthesisUtterance(line);
-      utter.lang = "ru-RU";
-      utter.pitch = voice.pitch;
-      utter.rate = voice.pitch < 0.5 ? 0.9 : 1.05;
-      utter.volume = 1;
-      window.speechSynthesis.speak(utter);
-    }, voice.delay));
-  });
-}
-
-function openGodzillas() {
-  godzillaShow.hidden = false;
-  toaster.setAttribute("aria-expanded", "true");
-  requestAnimationFrame(() => godzillaShow.classList.add("on"));
-  yellRickroll();
-}
-
-function closeGodzillas() {
-  godzillaShow.classList.remove("on");
-  godzillaShow.hidden = true;
-  toaster.setAttribute("aria-expanded", "false");
-  godzillaLive.textContent = "";
-  stopYell();
-}
-
-toaster.addEventListener("click", () => {
-  if (godzillaShow.hidden) openGodzillas();
-  else closeGodzillas();
-});
-document.querySelector("#godzilla-close").addEventListener("click", closeGodzillas);
-godzillaShow.addEventListener("click", (event) => {
-  if (event.target === godzillaShow) closeGodzillas();
-});
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !godzillaShow.hidden) closeGodzillas();
-});
-
 navHome.addEventListener("click", () => show("home"));
 navNews.addEventListener("click", () => show("news"));
 navEntry.addEventListener("click", () => show(state.clientId ? "events" : "entry"));
 document.querySelector("#enter-service").addEventListener("click", () => show("entry"));
 document.querySelector("#back").addEventListener("click", () => show("events"));
 
-buildParade();
 renderCompanies();
 show("home");
 load();
@@ -558,45 +494,4 @@ function eventsWord(count) {
   if (mod10 === 1 && mod100 !== 11) return "событие";
   if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "события";
   return "событий";
-}
-
-function buildParade() {
-  const crew = [
-    { left: "6%", delay: "0s", eyes: 2, scale: 0.92 },
-    { left: "22%", delay: "0.08s", eyes: 1, scale: 1.05 },
-    { left: "40%", delay: "0.16s", eyes: 2, scale: 0.84 },
-    { left: "58%", delay: "0.05s", eyes: 2, scale: 1 },
-    { left: "76%", delay: "0.2s", eyes: 1, scale: 0.96 },
-  ];
-  for (const minion of crew) {
-    const figure = document.createElement("div");
-    figure.className = "minion";
-    figure.style.left = minion.left;
-    figure.style.transitionDelay = minion.delay;
-    figure.innerHTML = `<div class="minion-size" style="transform:scale(${minion.scale})"><div class="minion-bob">${minionSvg(minion.eyes)}</div></div>`;
-    parade.append(figure);
-  }
-}
-
-function minionSvg(eyes) {
-  const goggles = eyes === 1
-    ? `<circle cx="46" cy="46" r="16" fill="#f7f7f7" stroke="#222" stroke-width="3"/>
-       <circle cx="46" cy="48" r="6" fill="#5a3318"/>`
-    : `<circle cx="34" cy="46" r="13" fill="#f7f7f7" stroke="#222" stroke-width="3"/>
-       <circle cx="58" cy="46" r="13" fill="#f7f7f7" stroke="#222" stroke-width="3"/>
-       <circle cx="35" cy="48" r="5" fill="#5a3318"/>
-       <circle cx="59" cy="48" r="5" fill="#5a3318"/>`;
-  return `
-    <svg viewBox="0 0 92 150" width="92" height="150" aria-hidden="true">
-      <ellipse cx="46" cy="58" rx="28" ry="40" fill="#f5d90a"/>
-      <rect x="22" y="78" width="48" height="40" rx="10" fill="#3d5a99"/>
-      <rect x="22" y="78" width="48" height="10" fill="#222"/>
-      <path d="M18 48h56" stroke="#222" stroke-width="4"/>
-      <g class="lid">${goggles}</g>
-      <path d="M36 66q10 8 20 0" fill="none" stroke="#222" stroke-width="2" stroke-linecap="round"/>
-      <rect x="18" y="112" width="16" height="14" rx="4" fill="#111"/>
-      <rect x="58" y="112" width="16" height="14" rx="4" fill="#111"/>
-      <rect x="8" y="84" width="12" height="10" rx="4" fill="#111"/>
-      <rect x="72" y="84" width="12" height="10" rx="4" fill="#111"/>
-    </svg>`;
 }

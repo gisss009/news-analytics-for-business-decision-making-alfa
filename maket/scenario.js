@@ -25,7 +25,7 @@ const CLIENTS = [
     features: [
       { id: "debt", text: "товарный запас финансируется коротким долгом" },
       { id: "demand", text: "выручка зависит от спроса" },
-      { id: "wages", text: "фонд оплаты — крупный расход" },
+      { id: "wages", text: "фонд оплаты: крупный расход" },
       { id: "prices", text: "ценник зависит от инфляции" },
     ],
   },
@@ -52,7 +52,7 @@ const CLIENTS = [
     features: [
       { id: "debt", text: "сезонное финансирование на заёмных деньгах" },
       { id: "export", text: "экспортная выручка в валюте" },
-      { id: "grain", text: "основная поставка — зерно" },
+      { id: "grain", text: "основная поставка: зерно" },
     ],
   },
 ];
@@ -188,7 +188,7 @@ function buildEvent(client, topic, cards) {
 function whyCompany(client, topic, fits, picked) {
   if (!fits) {
     return [
-      `${client.name} — ${client.activity}, ${client.region}. Финансы: ${client.finance}.`,
+      `${client.name}: ${client.activity}, ${client.region}. Финансы: ${client.finance}.`,
       `Тема «${topic}» не пересекается с этими признаками. Показывать её как событие компании было бы отраслевым трендом, а не контекстом клиента.`,
     ];
   }
@@ -218,7 +218,7 @@ function conclusion(client, topic, fits, picked, bank) {
   if (topic === "Ключевая ставка") {
     const pause = picked.some((card) => /14/.test(blob(card)) && /ставк|пауз/i.test(blob(card)));
     const core = pause
-      ? `Для «${client.name}» пауза ставки около 14% значит, что удешевление кредитов остановилось. Деньги остаются дорогими, и нагрузка, которая сидит на заёмном финансировании, в ближайшей перспективе не снизится.`
+      ? `Для «${client.name}» пауза ставки около 14% значит, что кредиты дешевле не станут. Деньги остаются дорогими, и нагрузка на заёмное финансирование в ближайшее время не снизится.`
       : `Для «${client.name}» новости о ставке важны из-за заёмного финансирования. Снижения нагрузки нет, пока материалы сами не фиксируют более дешёвые деньги.`;
     const bankBit = bank.length ? " Позиция банка в разборе отделена и приведена выше по обзору, а не смешана с этим выводом." : " Прямой формулировки банка по этой подборке нет, поэтому вывод на неё не опирается.";
     return core + bankBit;
@@ -301,7 +301,7 @@ const EFFECT = {
   },
   "Внешняя торговля:grain": {
     risk: "Рост чужого экспорта не равен выручке этой компании.",
-    opportunity: "Если материал прямо про зерно, объём партий — подтверждённый спрос.",
+    opportunity: "Если материал прямо про зерно, объём партий это подтверждённый спрос.",
     action: "",
   },
   "Санкции и дипломатия:export": {
@@ -310,7 +310,7 @@ const EFFECT = {
     action: "Не менять маршруты отгрузки из-за одного разговора о нормализации.",
   },
   "Долг и облигации:debt": {
-    risk: "Рынок долга и ставка компании — не одно и то же.",
+    risk: "Рынок долга и ставка компании это разные вещи.",
     opportunity: "",
     action: "",
   },
@@ -538,4 +538,6 @@ function hrefOf(card) {
   return "";
 }
 
-globalThis.Scenario = { clients: CLIENTS, storiesFor, eventsFor, answerQuestion };
+const Scenario = { clients: CLIENTS, storiesFor, eventsFor, answerQuestion };
+globalThis.Scenario = Scenario;
+export { Scenario };
