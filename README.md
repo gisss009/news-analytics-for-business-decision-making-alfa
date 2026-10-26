@@ -260,4 +260,5 @@ python scripts/node.py npm run build
 
 Python 3.11, FastAPI, Pydantic, SQLite с FTS5 (поиск BM25), httpx, pyfinews, PyMuPDF, Tesseract OCR (в Docker),
 React 19, TypeScript, Vite, Docker. Схемы данных — `docs/schemas`, источники — `docs/sources.md`,
-OpenAPI — `frontend/openapi.json` и http://127.0.0.1:8000/docs.
+OpenAPI — `frontend/openapi.json` и http://127.0.0.1:8000/docs. Сторонние компоненты и их лицензии —
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
