@@ -44,7 +44,18 @@ git clone https://github.com/gisss009/news-analytics-for-business-decision-makin
 cd news-analytics-for-business-decision-making-alfa
 ```
 
-Сводка для пользователя (`web/`) — откроется http://localhost:5174:
+Всё сразу одной командой Docker (сводка, ядро, API; без ключа LLM):
+
+```bash
+docker compose up
+```
+
+Через 2–4 минуты (первый запуск ставит зависимости и собирает выгрузку): сводка — http://localhost:5174,
+интерфейс ядра — http://localhost:5173, API — http://localhost:8000/docs. Остановка — Ctrl+C,
+затем `docker compose down`. Режим с моделью: `LLM_MODE=real` и ключ в `.env`, затем `docker compose up`.
+
+Или по частям, скриптами с флагами (подробно — ниже). Сводка для пользователя (`web/`) — откроется
+http://localhost:5174:
 
 ```bash
 python scripts/web.py
