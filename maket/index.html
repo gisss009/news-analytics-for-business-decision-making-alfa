@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Сводка для бизнеса</title>
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <header class="top">
+    <nav class="nav" aria-label="Разделы">
+      <button type="button" id="nav-home">Главная</button>
+      <button type="button" id="nav-entry">Сводка</button>
+      <button type="button" id="nav-news">Новости</button>
+    </nav>
+    <p class="count" id="count">Собираем сводку</p>
+  </header>
+
+  <main>
+    <section id="home">
+      <p class="crumb">Главный экран</p>
+      <h1>Сводка для решений</h1>
+      <p class="lead">Точка входа всегда здесь. Дальше выбирается компания, потом событие, которое важно именно ей: факты, позиция банка, риски и шаг.</p>
+      <button class="entry-tile" id="enter-service" type="button">
+        <span class="kicker">Открыть сервис</span>
+        <strong>Разобрать событие для компании</strong>
+        <span>Не лента новостей. Интерпретация с учётом кредитов, выручки и поставок.</span>
+      </button>
+    </section>
+
+    <section id="news" hidden>
+      <h1>Новости</h1>
+      <p class="lead">Бизнес и экономика. У каждой заметки сайт, с которого она взята, и сколько времени назад она вышла.</p>
+      <div class="news-list" id="news-list"></div>
+    </section>
+
+    <section id="entry" hidden>
+      <h1>Для кого сводка</h1>
+      <p class="lead">Выберите компанию. Дальше будет разбор её события: несколько факторов, риски, возможности и шаг, если он правда следует.</p>
+      <p class="lead note">Компании синтетические: в этой сборке нет карточек реальных клиентов. Цифры и формулировки берутся из новостей и обзоров банка.</p>
+      <div class="companies" id="companies"></div>
+    </section>
+
+    <section id="events" hidden>
+      <p class="crumb" id="crumb"></p>
+      <h1 id="events-title"></h1>
+      <p class="lead" id="events-lead"></p>
+      <div class="stories" id="stories"></div>
+    </section>
+
+    <section id="reading" hidden>
+      <button class="back" id="back" type="button">К событиям</button>
+      <article class="reading" id="reading-body"></article>
+    </section>
+  </main>
+
+  <script type="module" src="scenario.js"></script>
+  <script defer src="site.js"></script>
+</body>
+</html>

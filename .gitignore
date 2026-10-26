@@ -34,3 +34,8 @@ Thumbs.db
 data/analytics/*.pdf
 *.tsbuildinfo
 data/analytics/.ocr/
+
+# Парсер (parser/)
+data/out/
+data/alfa/*.pdf
+data/alfa/.ocr/

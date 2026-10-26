@@ -72,3 +72,32 @@ python scripts/node.py npm run build
 Схема API для фронтенда: `python -m app.api.export_openapi ../frontend/openapi.json`, затем `python scripts/node.py npm run gen:api`.
 Скачать датасет и PDF кейса (в git не попадают): `python scripts/fetch_data.py`, ссылки — в `.env`.
 Распознать PDF без запуска демо: `python scripts/ocr.py` (`--force` — заново).
+
+## Парсер без модели (`parser/`)
+
+Парсер собирает два потока в одни и те же карточки: PDF аналитики Альфа-Банка из `data/alfa` и деловые новости через [pyfinews](https://pypi.org/project/pyfinews/).
+
+Темы ставятся без языковой модели. На каждую тему есть поисковый запрос в pyfinews (ключевая ставка, курс, инфляция, сырьё, санкции, пошлины, рынок труда и другие) и словарь формулировок. Запрос, которым новость нашлась, тоже голосует за тему. Позиция банка вытаскивается из заголовков разделов вроде «Наш взгляд» и «Выводы», а не из пересказа модели.
+
+Обзоры банка в папке кейса — это слайды без текстового слоя. Для них нужен [Tesseract](https://github.com/tesseract-ocr/tesseract) с языками `rus` и `eng`. Распознанный текст кэшируется в `data/alfa/.ocr`.
+
+### Запуск
+
+```bash
+python -m pip install -r requirements.txt
+python -m parser
+```
+
+Команда пишет `data/out/materials.json` и `data/out/report.json`. PDF банка лежат в `data/alfa`. Глубина новостей по умолчанию 7 дней, по 4 материала на тему.
+
+Только обзоры банка:
+
+```bash
+python -m parser --no-news
+```
+
+Проверки:
+
+```bash
+python -m unittest discover -s tests -t . -v
+```
