@@ -267,6 +267,35 @@ python scripts/node.py npm run build
 - **Новости.** По умолчанию в ядре — офлайн-набор вымышленных новостей, чтобы демо работало без сети; живые — `--live`.
 - **Вход.** В сводке вход демонстрационный, без сервера и проверки пароля.
 
+## Архитектура
+
+```mermaid
+flowchart LR
+  subgraph Источники
+    N[Деловые новости<br>pyfinews, RSS]
+    B[9 PDF-обзоров<br>Альфа-Банка]
+    S[Синтетические данные<br>компаний]
+  end
+  N --> P[parser/<br>темы правилами]
+  B --> O[OCR в Docker<br>Tesseract] --> P
+  P --> X[(data/out<br>карточки)]
+  X --> W[web/ — сводка<br>отбор и разбор правилами]
+
+  N --> I[backend ingest<br>дедупликация, темы, факты]
+  O --> I
+  S --> D[backend data<br>профиль, граф, чувствительность]
+  I --> DB[(SQLite + FTS5 BM25)]
+  D --> DB
+  DB --> A[Агентный цикл<br>Planner → инструменты → Ranker →<br>позиция банка → Interpreter → Verifier]
+  A <--> L[llm/client<br>6 моделей, бюджет, кэш]
+  A --> API[FastAPI :8000] --> F[frontend/ :5173]
+```
+
+Сводка `web/` работает без модели: события отбираются и разбираются правилами по признакам компании
+(`maket/scenario.js`). Аналитическое ядро `backend/` строит разбор агентным циклом: у каждого утверждения
+метка и ссылки, Verifier проверяет ссылки и числа и возвращает блок на исправление. Сценарии проверки —
+[docs/test-scenarios.md](docs/test-scenarios.md).
+
 ## Стек
 
 Python 3.11, FastAPI, Pydantic, SQLite с FTS5 (поиск BM25), httpx, pyfinews, PyMuPDF, Tesseract OCR (в Docker),
